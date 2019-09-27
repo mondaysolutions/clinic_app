@@ -1,0 +1,321 @@
+{% extends "mybase.html" %}
+{% import 'appbuilder/general/lib.html' as lib %}
+
+{% block content %}
+
+<style>
+<!--body {-->
+  <!--padding-top: 0px !important;-->
+<!--}-->
+.invoice {
+    position: relative;
+    <!--min-height: 680px;-->
+    width: 700px;
+     padding: 0 10px;
+}
+
+.invoice header {
+    padding: 10px 0;
+    margin-bottom: 0px;
+}
+
+.invoice .company-details {
+    text-align: right;
+    padding-right:10px;
+    padding-top:10px;
+}
+
+.invoice .company-details .name {
+    margin-top: 0;
+    margin-bottom: 0
+}
+
+.invoice .contacts {
+    <!--margin-bottom: 20px;-->
+    padding:0 5px;
+}
+
+.invoice .invoice-to {
+    text-align: left
+}
+
+.invoice .invoice-to .to {
+    margin-top: 0;
+    margin-bottom: 0
+}
+
+.invoice .invoice-details {
+    text-align: right;
+}
+
+.invoice .invoice-details .invoice-id {
+    margin-top: 0;
+    color: #3989c6
+}
+.invoice .invoice-name {
+    display:inline;
+
+    font-size:20px;
+    font-weight:bold;
+}
+.invoice .company-name {
+    padding-top:10px;
+    font-size:18px;
+    font-weight:bold;
+}
+.invoice .grade {
+    font-size:16px;
+    font-weight:bold;
+}
+.invoice main {
+    padding: 0 10px;
+
+}
+
+.invoice main .thanks {
+    margin-top: -100px;
+    font-size: 1em;
+
+}
+
+.invoice main .notices {
+    margin-top: 10px;
+    padding-left: 6px;
+    border-left: 6px solid #3989c6
+}
+
+.invoice main .notices .notice {
+    font-size: 1em
+}
+
+.invoice table {
+    width: 100%;
+    <!--border-collapse: collapse;-->
+    border-spacing: 1;
+
+}
+.invoice table thead, .invoice table tbody {
+
+}
+.invoice table td,.invoice table th {
+    padding: 5px;
+}
+
+.invoice table th {
+    white-space: nowrap;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.invoice table .qty,.invoice table .total,.invoice table .unit {
+    text-align: right;
+    font-size: 12px;
+}
+
+
+.invoice table .unit {
+    <!--background: #ddd-->
+}
+
+.invoice table .total {
+    <!--background: #3989c6;-->
+    <!--color: #fff-->
+}
+
+.invoice table tbody tr:last-child td {
+    border: none
+}
+
+.invoice table tfoot td {
+    background: 0 0;
+    border-bottom: none;
+    white-space: nowrap;
+
+    <!--padding: 10px 20px;-->
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.invoice table tfoot tr:first-child td {
+    border-top: none
+}
+
+<!--.invoice table tfoot tr:last-child td {-->
+    <!--color: #3989c6;-->
+    <!--font-size: 1.4em;-->
+    <!--border-top: 1px solid #3989c6-->
+<!--}-->
+
+.invoice table tfoot tr td:first-child {
+    border: none
+}
+
+#invoice1 .invoice footer {
+    width: 100%;
+    text-align: center;
+    color: #777;
+    padding: 20px 0;
+    <!--border-bottom:1px dashed #999;-->
+}
+
+
+#invoice2 .invoice footer {
+    width: 100%;
+    text-align: center;
+    color: #777;
+    padding: 20px 0;
+
+}
+
+.column {
+  float: left;
+}
+
+/* Clear floats after the columns */
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+@media print {
+
+    body {
+        padding-top: 0px !important;
+    }
+    .invoice {
+        font-size: 12px!important;
+        overflow: hidden!important
+    }
+
+    <!--#invoice1 .invoice footer {-->
+        <!--position: absolute;-->
+        <!--border-bottom:0px !important;-->
+        <!--page-break-after: always-->
+    <!--}-->
+
+    #invoice1 .invoice>div:last-child {
+        page-break-before: always
+    }
+    .well {
+        display: none;
+    }
+}
+
+</style>
+<div class="row">
+    <div class="col-md-12">
+
+
+
+<div class="well well-sm">
+        {{ lib.lnk_back() }}
+    </div>
+
+<div id="invoice1">
+
+    <div class="invoice overflow-auto">
+        <div style="min-width: 600px">
+            <header>
+                <table border="0" cellspacing="0" cellpadding="0">
+                    <tr>
+                        <td>
+                            <img src="/static/miracle_prehab.png" width="300" data-holder-rendered="true" style="width:400px"/>
+
+                        </td>
+                        <td>
+                            <div class="company-details">
+                                <div class="invoice-name">Official Receipt</div>
+                                <div class="company-name">Miracle Prehab & Sports Clinic</div>
+                                <div>Unit 1904, 19/F, Hang Lung Centre,</div>
+                                <div>2-20 Paterson Street, Causeway Bay</div>
+                                <div>Tel No.: 3612 9188 </div>
+                                <div>Email: Info@miracleprehab.com.hk </div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </header>
+            <main >
+                <table border="0" cellspacing="0" cellpadding="0">
+                    <tr>
+                        <td valign="top">
+                            <div class="invoice-to" style="font-size:14px;">
+                                {% if receipt.receipt_type == 'Appointment' %}
+                                    <div class="to">Name: {{ receipt.customer.first_name }} {{ receipt.customer.last_name }} </div>
+                                    <div class="to">Therapist: {{ receipt.appointment.physician.first_name }} {{ receipt.appointment.physician.last_name }} </div>
+                                    <div class="to">Diagnosis: {{ receipt.appointment.diagnosis  }}</div>
+                                {% endif %}
+                                {% if receipt.receipt_type == 'Package' %}
+                                    <div class="to">Name: {{ receipt.customer.first_name }} {{ receipt.customer.last_name }} </div>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td valign="top">
+                            <div class="invoice-details" style="font-size:14px;">
+                                <div class="to">Receipt No.: {{ receipt.receipt_no }} </div>
+                                <div class="to">Date: {{ "{}".format(receipt.receipt_date.strftime("%Y-%m-%d"))  }} </div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+                <table border="0" cellspacing="0" cellpadding="0" >
+                    <thead style="border-bottom:1px solid #000">
+                        <tr>
+                            <th class="text-left">Item</th>
+                            <th class="text-right">Quantity</th>
+                            <th class="text-right">Price</th>
+                        </tr>
+                    </thead>
+                    <tbody style="border-bottom:1px solid #000">
+                        {% set cnt = [0] %}
+                        {% set total_amount = [0] %}
+                        {% for receipt_item in receipt.receipt_items %}
+                            {% if receipt_item.status == 'A' %}
+                                {% if cnt.append(cnt.pop() + 1) %}{% endif %}
+                                {% if total_amount.append(total_amount.pop() + receipt_item.amount) %}{% endif %}
+                            <tr>
+                                <td class="text-left"><span style="padding-right:10px">{{ cnt[0] }}.</span>{{ receipt_item.item_description() }}</td>
+                                <td class="text-right">{{ receipt_item.quantity }}</td>
+                                <td class="text-right">{{ "${:,.2f}".format(receipt_item.amount) }}</td>
+                            </tr>
+                            {% endif %}
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td class="text-right" colspan="3">Total {{ "${:,.2f}".format(total_amount[0]) }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+                <div class="row ">
+                      <div class="column notices" style="margin-left:15px;width:70%">
+                          <div style="font-size:16px;font-weight:bold">Payment By {{ receipt.payment_method }}</div>
+                      </div>
+                      <div class="column" style="width:25%">
+                          <div>For and On Behalf of</div>
+                          <div>Miracle Prehab & Sports Clinic</div>
+                          <div style="height:100px">&nbsp;</div>
+                          <div style="border-top:1px solid #000">Authorized Signature</div>
+                      </div>
+                </div>
+
+
+            </main>
+            <footer>
+            </footer>
+        </div>
+        <!--DO NOT DELETE THIS div. IT is responsible for showing footer always at the bottom-->
+        <div></div>
+    </div>
+</div>
+
+
+
+
+    </div>
+
+</div>
+
+
+{% endblock %}
