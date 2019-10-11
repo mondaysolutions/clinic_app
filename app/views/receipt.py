@@ -30,14 +30,14 @@ class ReceiptItemView(AuditModelView):
     datamodel = SQLAInterface(ReceiptItem)
     base_permissions = ['can_list', 'can_add', 'can_edit', 'can_action']
 
-    list_columns = ['description_display', 'price_display', 'quantity', 'apply_coupon', 'discount_display', 'amount_display', 'status_display']
+    list_columns = ['description_display', 'price_display', 'quantity', 'apply_coupon', 'discount_display', 'amount_display', 'is_void']
     show_template = 'appbuilder/general/model/show_cascade.html'
     edit_template = 'appbuilder/general/model/edit_cascade.html'
     list_template = 'appbuilder/general/model/list.html'
     label_columns = {'discount_display': 'Discount',
                      'price_display': 'Price',
                      'amount_display': 'Amount',
-                     'status_display': 'Is Void',
+                     'is_void': 'Is Void',
                      'description_display': 'Description'}
     add_form_extra_fields = {
         'description': StringField('Description', validators=[ReceiptItemValidator(message='Invalid')],
@@ -114,8 +114,8 @@ class ReceiptItemView(AuditModelView):
 
 
 class ReceiptGeneralItemView(ReceiptItemView):
-    add_columns = ['receipt', 'category', 'description', 'price', 'quantity', 'apply_coupon']
-    edit_columns = ['receipt', 'description', 'price', 'quantity', 'apply_coupon', 'discount', 'amount', 'status']
+    add_columns = ['receipt', 'category', 'description', 'price', 'quantity', 'apply_coupon', 'remarks']
+    edit_columns = ['receipt', 'description', 'price', 'quantity', 'apply_coupon', 'discount', 'amount', 'status', 'remarks']
 
     def pre_add(self, item):
         if item.category:
@@ -131,8 +131,8 @@ class ReceiptGeneralItemView(ReceiptItemView):
 
 
 class ReceiptCustomerItemView(ReceiptItemView):
-    add_columns = ['receipt', 'category', 'package', 'description', 'price', 'quantity', 'apply_coupon']
-    edit_columns = ['receipt', 'description', 'price', 'quantity', 'apply_coupon', 'discount', 'amount', 'status']
+    add_columns = ['receipt', 'category', 'package', 'description', 'price', 'quantity', 'apply_coupon', 'remarks']
+    edit_columns = ['receipt', 'description', 'price', 'quantity', 'apply_coupon', 'discount', 'amount', 'status', 'remarks']
     add_form_query_rel_fields = {
         'category': [['expiry_date', FilterGreater, get_now()],
                      ['category_type', FilterCategoryFunction, get_receipt_id_from_url]
@@ -176,6 +176,7 @@ class ReceiptCustomerItemView(ReceiptItemView):
             p.ticket_remaining = p.ticket_remaining - 1
             pt = PackageTicket()
             pt.package = p
+            pt.appointment = a
             pt.mobile = c.contact_no
             pt.begin_datetime = a.begin_datetime
             pt.end_datetime = a.end_datetime
@@ -196,13 +197,13 @@ class ReceiptView(AuditModelView):
     # related_views = [ReceiptItemView]
     show_template = 'appbuilder/general/model/show_cascade.html'
     edit_template = 'appbuilder/general/model/edit_cascade.html'
-    list_template = 'appbuilder/general/model/list.html'
+    # list_template = 'appbuilder/general/model/list.html'
 
-    list_columns = ['receipt_no', 'receipt_date', 'receipt_type', 'coupon_code', 'payment_method', 'status_display']
+    list_columns = ['receipt_no', 'receipt_date', 'receipt_type', 'coupon_code_display', 'payment_method', 'is_void']
 
-    base_permissions = ['can_list', 'can_add', 'can_edit', 'can_action', 'can_delete', 'can_search']
+    base_permissions = ['can_list', 'can_add', 'can_edit', 'can_action', 'can_search']
 
-    label_columns = {'status_display': 'Is Void'}
+    label_columns = {'is_void': 'Is Void', 'coupon_code_display': 'Coupon Code'}
 
     base_order = ('receipt_no', 'desc')
 
@@ -366,7 +367,7 @@ class ReceiptCustomerView(ReceiptView):
 
     add_columns = ['receipt_type', 'receipt_date', 'customer', 'appointment', 'package', 'coupon_code',
                    'payment_method', 'payment_reference']
-    edit_columns = ['receipt_no', 'receipt_type', 'receipt_date', 'customer', 'coupon_code',
+    edit_columns = ['receipt_no', 'receipt_type', 'receipt_date', 'customer','appointment', 'package',  'coupon_code',
                     'payment_method', 'payment_reference', 'status']
 
     add_form_query_rel_fields = {'appointment': [['customer_id', FilterEqualFunction, get_customer_id_from_url],
@@ -377,9 +378,9 @@ class ReceiptCustomerView(ReceiptView):
                                              ],
                                  }
 
-    # edit_form_query_rel_fields = {'appointment': [['receipt_no', FilterEqualFunction, get_receipt_no_from_url]],
-    #                               'package': [['receipt_no', FilterEqualFunction, get_receipt_no_from_url]]
-    #                               }
+    edit_form_query_rel_fields = {'appointment': [['receipt_no', FilterEqualFunction, get_receipt_no_from_url]],
+                                  'package': [['receipt_no', FilterEqualFunction, get_receipt_no_from_url]]
+                                  }
 
     add_form_extra_fields = {
         'payment_method': SelectField('Payment Method', choices=get_choices('payment_method'),
@@ -413,6 +414,95 @@ class ReceiptCustomerView(ReceiptView):
     @action("customer", "Back to Customer", "", "fa-user", btnclass="btn-warning", multiple=False)
     def customer(self, item):
         return redirect('/customerview/edit/{}'.format(str(item.customer_id)))
+
+    def process_form(self, form, is_created):
+        """
+            Override this, will be called only if the current action is submitting
+            a create/edit form (a POST request), and is used to perform additional
+            action before the form is used to populate the item.
+
+            By default does nothing.
+
+            example::
+
+                def process_form(self, form, is_created):
+                    if not form.owner:
+                        form.owner.data = 'n/a'
+        """
+        # pass
+        if not is_created:
+            delattr(form, 'appointment')
+            delattr(form, 'package')
+            del form.__dict__["appointment"];
+            del form.__dict__["package"];
+
+    def get_redirect(self):
+        """
+            Returns the previous url.
+        """
+        index_url = self.appbuilder.get_url_for_index
+        page_history = Stack(session.get("page_history", []))
+        pop = page_history.pop()
+
+        if pop is None:
+            return index_url
+        else:
+            if pop.find('/receiptcustomerview/add') != -1:
+                pop = pop.replace('add?', f'edit/{self.pk}?')
+                return pop
+            elif pop.find('/receiptcustomerview/edit') != -1:
+                return pop
+            else:
+                session["page_history"] = page_history.to_json()
+                url = page_history.pop() or index_url
+                return url
+
+    def _get_list_widget(
+            self,
+            filters,
+            actions=None,
+            order_column="",
+            order_direction="",
+            page=None,
+            page_size=None,
+            widgets=None,
+            **args
+    ):
+
+        """ get joined base filter and current active filter for query """
+        widgets = widgets or {}
+        actions = actions or self.actions
+        page_size = page_size or self.page_size
+        if not order_column and self.base_order:
+            order_column, order_direction = self.base_order
+        joined_filters = filters.get_joined_filters(self._base_filters)
+        count, lst = self.datamodel.query(
+            joined_filters,
+            order_column,
+            order_direction,
+            page=page,
+            page_size=page_size,
+        )
+        pks = self.datamodel.get_keys(lst)
+
+        # serialize composite pks
+        pks = [self._serialize_pk_if_composite(pk) for pk in pks]
+
+        widgets["list"] = self.list_widget(
+            label_columns=self.label_columns,
+            include_columns=self.list_columns,
+            value_columns=self.datamodel.get_values(lst, self.list_columns),
+            order_columns=self.order_columns,
+            formatters_columns=self.formatters_columns,
+            page=page,
+            page_size=page_size,
+            count=count,
+            pks=pks,
+            actions=actions,
+            filters=filters,
+            modelview_name=self.__class__.__name__,
+        )
+        return widgets
 
 
 class ReceiptGeneralView(ReceiptView):

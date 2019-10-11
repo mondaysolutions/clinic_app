@@ -249,6 +249,9 @@
                                 {% if receipt.receipt_type == 'Package' %}
                                     <div class="to">Name: {{ receipt.customer.first_name }} {{ receipt.customer.last_name }} </div>
                                 {% endif %}
+                                {% if receipt.receipt_type == 'General' and receipt.customer %}
+                                    <div class="to">Name: {{ receipt.customer.first_name }} {{ receipt.customer.last_name }} </div>
+                                {% endif %}
                             </div>
                         </td>
                         <td valign="top">

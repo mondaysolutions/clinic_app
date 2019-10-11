@@ -72,3 +72,14 @@ class PackageTicket(StatusMixin, Model):
     customer_id = Column(Integer, ForeignKey('customer.id'), nullable=False)
     customer = relationship("Customer")
 
+    appointment_id = Column(Integer, ForeignKey('appointment.id'), nullable=False)
+    appointment = relationship("Appointment")
+
+    @renders('appointment_begin_datetime')
+    def appointment_begin_datetime(self):
+        return self.appointment.begin_datetime
+
+    @renders('appointment_end_datetime')
+    def appointment_end_datetime(self):
+        return self.appointment.end_datetime
+

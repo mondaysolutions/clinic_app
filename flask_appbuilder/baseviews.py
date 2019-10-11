@@ -263,39 +263,14 @@ class BaseView(object):
         """
             Returns the previous url.
         """
+        index_url = self.appbuilder.get_url_for_index
+        page_history = Stack(session.get("page_history", []))
 
-        if self.url is not None and request.method == "POST":
-            if self.url.find('edit') != -1:
-                return self.url
-            elif self.url.find('add') != -1:
-                page_history = Stack(session.get("page_history", []))
-                page_history.pop()
-                return self.url.replace('add', 'edit/' + str(self.pk), 1)
-
-            else:
-                index_url = self.appbuilder.get_url_for_index
-                page_history = Stack(session.get("page_history", []))
-
-                if page_history.pop() is None:
-                    return index_url
-                session["page_history"] = page_history.to_json()
-                url = page_history.pop() or index_url
-                print(url)
-                print(request.url)
-                print(request.method)
-                return url
-        else:
-            index_url = self.appbuilder.get_url_for_index
-            page_history = Stack(session.get("page_history", []))
-
-            if page_history.pop() is None:
-                return index_url
-            session["page_history"] = page_history.to_json()
-            url = page_history.pop() or index_url
-            print(url)
-            print(request.url)
-            print(request.method)
-            return url
+        if page_history.pop() is None:
+            return index_url
+        session["page_history"] = page_history.to_json()
+        url = page_history.pop() or index_url
+        return url
 
     @classmethod
     def get_default_url(cls, **kwargs):

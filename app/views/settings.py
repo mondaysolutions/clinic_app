@@ -12,6 +12,7 @@ from .base import *
 
 class CouponView(AuditModelView):
     datamodel = SQLAInterface(Coupon)
+    # list_template = 'appbuilder/general/model/list.html'
     base_permissions = ['can_list', 'can_add', 'can_edit', 'can_action']
 
     list_columns = ['code', 'discount_display', 'expiry_date', 'is_multiple', 'coupon_status', 'status_display']
@@ -58,7 +59,6 @@ class CouponView(AuditModelView):
 
 
 class CategoryView(AuditModelView):
-    page_size = 100
     datamodel = SQLAInterface(Category)
     base_permissions = ['can_list', 'can_add', 'can_edit']
 

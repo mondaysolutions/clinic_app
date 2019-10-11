@@ -1,0 +1,88 @@
+{% extends "mybase.html" %}
+{% import 'appbuilder/general/lib.html' as lib %}
+
+{% block content %}
+{{ lib.panel_begin('Lesson Fee (Matrix)') }}
+<div class="row">
+    <div class="col-md-12">
+        <div id="exTab2" class="container" style="padding-top:15px">
+            <ul class="nav nav-tabs">
+                  {% for c in instruments %}
+                        {% if loop.index == 1 %}
+                  <li class="active">
+                        {% else %}
+                  <li>
+                        {% endif %}
+                        <a href="#{{ loop.index }}" data-toggle="tab">{{ c.name }}</a>
+                  </li>
+                  {% endfor %}
+            </ul>
+
+			<div class="tab-content ">
+                {% for l in all_lesson_fees %}
+                    {% if loop.index == 1 %}
+                    <div class="tab-pane active" id="{{ loop.index }}">
+                    {% else %}
+                    <div class="tab-pane" id="{{ loop.index }}">
+                    {% endif %}
+                        <table class="example table table-hover table-bordered table-condensed">
+                            <thead>
+                                <tr>
+                                    <th>Grade</th>
+                                    <th>30 Mins</th>
+                                    <th>45 Mins</th>
+                                    <th>60 Mins</th>
+                                </tr>
+                            </thead>
+                        <tbody>
+                            {% for c in l %}
+                            <tr>
+                                <td>{{c['grade']}}</td>
+                                <td>
+                                    {% if c['30 mins'] == None %}
+                                       -
+                                    {% else %}
+                                    {% set w = c['30 mins'].split('|') %}
+                                    <a href="/lessonfeeview/edit/{{w[1]}}">${{w[0]}}</a>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if c['45 mins'] == None %}
+                                       -
+                                    {% else %}
+                                    {% set w = c['45 mins'].split('|') %}
+                                    <a href="/lessonfeeview/edit/{{w[1]}}">${{w[0]}}</a>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if c['60 mins'] == None %}
+                                       -
+                                    {% else %}
+                                    {% set w = c['60 mins'].split('|') %}
+                                    <a href="/lessonfeeview/edit/{{w[1]}}">${{w[0]}}</a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                          {% endfor %}
+                        </tbody>
+                        </table>
+                    </div>
+                {% endfor %}
+			</div>
+        </div>
+    </div>
+</div>
+
+{{ lib.panel_end() }}
+
+<script>
+$(document).ready(function() {
+    $('.example').DataTable({
+        "lengthChange": false,
+        "pageLength":25,
+        "ordering": false,
+        "searching": false
+    });
+} );
+</script>
+{% endblock %}

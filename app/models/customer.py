@@ -66,16 +66,16 @@ class MedicalHistory(StatusMixin, Model):
 class Customer(StatusMixin, Model):
     id = Column(Integer, primary_key=True)
 
-    salvation = Column(String(10), nullable=False)
+    title = Column(String(10), nullable=True)
     first_name = Column(String(50), nullable=False)
-    last_name = Column(String(50), nullable=False)
+    last_name = Column(String(50), nullable=True)
     chinese_name = Column(String(20), nullable=True)
 
     date_of_birth = Column(String(10), nullable=True)
     hkid = Column(String(20), nullable=True)
     email = Column(String(50), nullable=True)
 
-    contact_no = Column(String(20), nullable=False)
+    contact_no = Column(String(20), nullable=True)
     mobile_no = Column(String(20), nullable=True)
     emergency_contact = Column(String(20), nullable=True)
 
@@ -106,5 +106,16 @@ class Customer(StatusMixin, Model):
     def __repr__(self):
         return self.first_name + ' ' + self.last_name
 
+    @renders('contact_no')
+    def display_contact_no(self):
+        if self.contact_no:
+            return self.contact_no
+        else:
+            return ''
 
-
+    @renders('hkid')
+    def display_hkid(self):
+        if self.hkid:
+            return self.hkid
+        else:
+            return ''

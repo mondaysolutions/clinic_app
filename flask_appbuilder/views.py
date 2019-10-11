@@ -1,6 +1,12 @@
 import json
 import logging
-
+from .urltools import (
+    get_filter_args,
+    get_order_args,
+    get_page_args,
+    get_page_size_args,
+    Stack
+)
 from flask import (
     abort,
     flash,
@@ -51,6 +57,23 @@ class UtilView(BaseView):
     @expose("/back")
     def back(self):
         return redirect(self.get_redirect())
+
+    def get_redirect(self):
+        index_url = self.appbuilder.get_url_for_index
+        page_history = Stack(session.get("page_history", []))
+        pop = page_history.pop()
+        if pop is None:
+            return index_url
+
+        if pop.find('/customerview/edit') != -1:
+            return '/customerview/list'
+        elif pop.find('/receiptcustomerview/edit') != -1:
+            url = str(pop[pop.find('customer=') + 9:])
+            return f'/customerview/edit/{url}'
+        else:
+            session["page_history"] = page_history.to_json()
+            url = page_history.pop() or index_url
+            return url
 
 
 class SimpleFormView(BaseFormView):

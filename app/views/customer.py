@@ -27,6 +27,8 @@ from .appointment import AppointmentView
 from .package import PackageView
 from .receipt import ReceiptView, ReceiptCustomerView
 
+from flask_appbuilder.urltools import Stack
+
 
 class CustomFilterEqualFunction(BaseFilter):
     name = "Filter view with a function"
@@ -139,11 +141,11 @@ class CustomerView(AuditModelView):
     related_views = [AppointmentView, PackageView, ReceiptCustomerView, CustomerDocumentView, MedicalHistoryView]
     # show_template = 'appbuilder/general/model/show_cascade.html'
     edit_template = 'appbuilder/general/model/edit.html'
-    list_template = 'appbuilder/general/model/list.html'
+    # list_template = 'appbuilder/general/model/list.html'
 
     search_columns = ['first_name', 'last_name', 'hkid', 'contact_no']
 
-    list_columns = ['first_name', 'last_name', 'hkid', 'contact_no']
+    list_columns = ['first_name', 'last_name', 'display_hkid', 'display_contact_no']
 
     base_permissions = ['can_list', 'can_add', 'can_edit', 'can_search']
 
@@ -152,9 +154,11 @@ class CustomerView(AuditModelView):
                      'physician3': 'Physician',
                      'physician4': 'Physician',
                      'physician5': 'Physician',
-                     'hkid': 'HK ID'}
+                     'hkid': 'HK ID',
+                     'display_hkid': 'HK ID',
+                     'display_contact_no': 'Contact No'}
 
-    # base_order = ('changed_on', 'desc')
+    base_order = ('first_name', 'asc')
 
     add_form_query_rel_fields = {'physician1': [['user_type', FilterEqual, 'Physician']],
                                  'physician2': [['user_type', FilterEqual, 'Physician']],
@@ -168,7 +172,7 @@ class CustomerView(AuditModelView):
     base_filters = [['physician1', CustomFilterRoleFunction, get_user]]
     # base_filters = or_(Customer.physician1 == get_user()', User.name == 'akshay')
 
-    add_columns = ["salvation", "first_name", "last_name", "chinese_name",
+    add_columns = ["title", "first_name", "last_name", "chinese_name",
                    "date_of_birth", "hkid", "email", "contact_no", "mobile_no", "emergency_contact",
                    "referral_doctor", "source_of_referral",
                    "physician1", "physician2", "physician3", "physician4", "physician5"]
@@ -178,7 +182,7 @@ class CustomerView(AuditModelView):
     add_fieldsets = [
         ('Personal', {
                 'fields': [
-                    "salvation", "first_name", "last_name", "hkid", "contact_no", 'physician1', "date_of_birth"
+                    "title", "first_name", "last_name", "hkid", "contact_no", 'physician1', "date_of_birth"
                 ]
             }),
         ('Info', {'fields': [
@@ -196,7 +200,7 @@ class CustomerView(AuditModelView):
     edit_fieldsets = add_fieldsets
 
     add_form_extra_fields = {
-        'salvation': SelectField('Salvation', choices=get_choices('salvation'),
+        'title': SelectField('Title', choices=get_choices('title'),
                                  validators=[validators.DataRequired()],
                                  widget=CustomizeSelect2Widget(extra_classes="")),
 
@@ -250,6 +254,26 @@ class CustomerView(AuditModelView):
         self.edit_exclude_columns.append('medical_historys')
         self.show_exclude_columns.append('medical_historys')
         super(AuditModelView, self).__init__(**kwargs)
+
+    def get_redirect(self):
+        """
+            Returns the previous url.
+        """
+        index_url = self.appbuilder.get_url_for_index
+        page_history = Stack(session.get("page_history", []))
+        pop = page_history.pop()
+
+        if pop is None:
+            return index_url
+        else:
+            if pop.find('/customerview/add') != -1:
+                return f'/customerview/edit/{self.pk}'
+            elif pop.find('/customerview/edit') != -1:
+                return pop
+            else:
+                session["page_history"] = page_history.to_json()
+                url = page_history.pop() or index_url
+                return url
 
 
 class CustomerStaffView(CustomerView):

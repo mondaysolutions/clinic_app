@@ -1,0 +1,158 @@
+{% extends "mybase.html" %}
+{% import 'appbuilder/general/lib.html' as lib %}
+
+{% block content %}
+<link href="{{url_for('static',filename='fullcalendar/core/main.css')}}" rel='stylesheet' />
+<link href="{{url_for('static',filename='fullcalendar/daygrid/main.css')}}" rel='stylesheet' />
+<link href="{{url_for('static',filename='fullcalendar/timegrid/main.css')}}" rel='stylesheet' />
+<link href="{{url_for('static',filename='fullcalendar/list/main.css')}}" rel='stylesheet' />
+<link href="{{url_for('static',filename='fullcalendar/timeline/main.css')}}" rel='stylesheet' />
+<link href="{{url_for('static',filename='fullcalendar/resource-timeline/main.css')}}" rel='stylesheet' />
+<script src="{{url_for('static',filename='fullcalendar/core/main.js')}}"></script>
+<script src="{{url_for('static',filename='fullcalendar/interaction/main.js')}}"></script>
+<script src="{{url_for('static',filename='fullcalendar/daygrid/main.js')}}"></script>
+<script src="{{url_for('static',filename='fullcalendar/timegrid/main.js')}}"></script>
+<script src="{{url_for('static',filename='fullcalendar/list/main.js')}}"></script>
+<script src="{{url_for('static',filename='fullcalendar/timeline/main.js')}}"></script>
+<script src="{{url_for('static',filename='fullcalendar/resource-common/main.js')}}"></script>
+<script src="{{url_for('static',filename='fullcalendar/resource-timeline/main.js')}}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        schedulerLicenseKey: 'GPL-My-Project-Is-Open-Source',
+        plugins: [ 'interaction', 'dayGrid', 'timeGrid', 'list', 'resourceTimeline' ],
+        now: '{{current_date | safe}}',
+        editable: false, // enable draggable events
+        aspectRatio: 1.2,
+        height: 1050, <!--height:300,-->
+        resourceAreaWidth:"15%",
+        scrollTime: '09:00', // undo default 6am scrollTime
+        slotDuration: '00:15:00',
+        minTime:'10:00:00',
+        maxTime:'20:00:00',
+        columnHeaderText: function(d) {
+            weekname = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            return weekname[d.getDay()] + ' ' + d.getDate() + '/' + (d.getMonth() + 1);
+        },
+        eventTimeFormat: { // like '14:30:00'
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+          },
+          slotLabelFormat: {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+          },
+        header: {
+            left: 'today prev,next',
+            center: 'title',
+            <!--right: 'dayGridMonth,timeGridWeek,timeGridDay, resourceTimelineDay,listWeek'-->
+            right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+        },
+        defaultView: 'dayGridMonth',
+        views: {
+            resourceTimelineDay: {
+                buttonText: ':15 slots',
+                slotDuration: '00:15'
+            },
+            resourceTimelineThreeDays: {
+                type: 'resourceTimeline',
+                duration: { days: 3 },
+                buttonText: '3 days'
+            }
+        },
+        resourceLabelText: 'Student',
+        resources: {{resources | safe}},
+        events: {{events | safe}},
+
+        eventClick: function(info) {
+            info.jsEvent.preventDefault(); // don't let the browser navigate
+
+            <!--$('#modalTitle').html(info.event.title);-->
+            //$('#modalBody').html(info.event.url);
+            $('#eventUrl').attr('href',info.event.url);
+            $('#eventUrl').html(info.event.url);
+            <!--$('#calendarModal').modal();-->
+            location = info.event.url;
+        },
+    });
+    calendar.render();
+});
+
+    /*
+  $(document).on('click', '.fc-resourceTimelineDay-button', function(e) {
+   <!--$('.fc-resourceTimelineDay-button').click(function(e) {-->
+    $('.fc-widget-content .fc-scroller-clip .fc-scroller').css('height', '400px');
+    $('.fc-widget-header .fc-scroller-clip .fc-scroller .fc-scroller-canvas').css('width','1215px');
+    $('.fc-widget-header .fc-scroller-clip .fc-scroller .fc-scroller-canvas').css('min-width','0px');
+    $('.fc-widget-header .fc-scroller-clip .fc-scroller .fc-scroller-canvas').css('padding-right','15px');
+
+  });
+
+  $(document).on('click', '.fc-prev-button', function(e) {
+    $('.fc-widget-content .fc-scroller-clip .fc-scroller').css('height', '400px');
+    $('.fc-widget-header .fc-scroller-clip .fc-scroller .fc-scroller-canvas').css('width','1215px');
+    $('.fc-widget-header .fc-scroller-clip .fc-scroller .fc-scroller-canvas').css('min-width','0px');
+    $('.fc-widget-header .fc-scroller-clip .fc-scroller .fc-scroller-canvas').css('padding-right','15px');
+  });
+
+   $(document).on('click', '.fc-next-button', function(e) {
+    $('.fc-widget-content .fc-scroller-clip .fc-scroller').css('height', '400px');
+    $('.fc-widget-header .fc-scroller-clip .fc-scroller .fc-scroller-canvas').css('width','1215px');
+    $('.fc-widget-header .fc-scroller-clip .fc-scroller .fc-scroller-canvas').css('min-width','0px');
+    $('.fc-widget-header .fc-scroller-clip .fc-scroller .fc-scroller-canvas').css('padding-right','15px');
+  });
+
+   $(document).on('click', '.fc-today-button', function(e) {
+    $('.fc-widget-content .fc-scroller-clip .fc-scroller').css('height', '400px');
+    $('.fc-widget-header .fc-scroller-clip .fc-scroller .fc-scroller-canvas').css('width','1215px');
+    $('.fc-widget-header .fc-scroller-clip .fc-scroller .fc-scroller-canvas').css('min-width','0px');
+    $('.fc-widget-header .fc-scroller-clip .fc-scroller .fc-scroller-canvas').css('padding-right','15px');
+  });
+*/
+</script>
+<style>
+#calendar {
+    max-width: 900px;
+    margin: 50px auto;
+}
+
+.fc-event{
+    cursor: pointer;
+}
+</style>
+
+{{ lib.panel_begin(title) }}
+<div class="row">
+  <div class="col-md-12">
+    <div id='calendar'></div>
+    <div id="calendarModal" class="modal fade" style="margin-top:100px">
+<div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span>
+              <span class="sr-only">close</span></button>
+            <h4 id="modalTitle" class="modal-title"></h4>
+        </div>
+        <div id="modalBody" class="modal-body">
+            <a id="eventUrl" href=""></a>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+    </div>
+</div>
+</div>
+
+  </div>
+
+
+</div>
+
+{{ lib.panel_end() }}
+
+{% endblock %}
+

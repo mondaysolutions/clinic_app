@@ -19,6 +19,10 @@ from app.utils import random_color, get_choices
 
 from .base import *
 from .base_util import *
+
+import json
+
+
 # from .receipt import AppointmentReceiptView
 
 
@@ -37,7 +41,10 @@ class ExampleApi(BaseApi):
         # return self.response(201, message="Hello (POST)")
         else:
             print(request.form)
-            return self.response(201, message="Hello (POST)")
+            a = {'name': 'Sarah', 'age': 24, 'isEmployed': True}
+            j = json.dumps(a)
+            return self.response(201, data=j)
+
 
 class AppointmentRequestView(AuditModelView):
     datamodel = SQLAInterface(AppointmentRequest)
@@ -45,18 +52,18 @@ class AppointmentRequestView(AuditModelView):
     show_template = 'appbuilder/general/model/show_cascade.html'
     edit_template = 'appbuilder/general/model/edit_cascade.html'
     list_template = 'appbuilder/general/model/list.html'
-    base_permissions = ['can_list', 'can_add', 'can_edit', 'can_action', 'can_delete']
+    base_permissions = ['can_list', 'can_add', 'can_edit', 'can_action']
 
     list_columns = ['receipt_no_display', 'physician', 'begin_datetime', 'end_datetime', 'facilities_booking']
 
-    add_columns = ['salvation', 'first_name', 'last_name', 'contact_no',
+    add_columns = ['title', 'first_name', 'last_name', 'contact_no',
                    'begin_datetime']
                    # , 'end_datetime', 'customer', 'physician']
 
     edit_columns = add_columns
 
     add_form_extra_fields = {
-        'salvation': SelectField('Salvation', choices=get_choices('salvation'),
+        'title': SelectField('Title', choices=get_choices('title'),
                                  validators=[validators.DataRequired()],
                                  widget=CustomizeSelect2Widget(extra_classes=""))
     }
@@ -70,10 +77,10 @@ class AppointmentView(AuditModelView):
     # related_views = [AppointmentReceiptView]
     show_template = 'appbuilder/general/model/show_cascade.html'
     edit_template = 'appbuilder/general/model/edit_cascade.html'
-    list_template = 'appbuilder/general/model/list.html'
-
-    base_permissions = ['can_list', 'can_add', 'can_edit', 'can_action', 'can_delete']
-    list_columns = ['receipt_no_display', 'physician', 'begin_datetime', 'end_datetime', 'facilities_booking']
+    # list_template = 'appbuilder/general/model/list.html'
+    base_order = ('receipt_no', 'desc')
+    base_permissions = ['can_list', 'can_add', 'can_edit', 'can_action']
+    list_columns = ['receipt_no_display', 'physician', 'begin_datetime', 'end_datetime', 'facilities_booking', 'diagnosis']
 
     label_columns = {'diagnosis': 'Diagnosis',
                      'injury_due_to': 'Injury due to accident, when was it',
@@ -123,7 +130,7 @@ class AppointmentView(AuditModelView):
                                           validators=[validators.DataRequired()],
                                           widget=CustomizeSelect2Widget(extra_classes=""),
                                           default="No"),
-        'receipt_no': StringField('Receipt No', widget=BS3TextFieldROWidget()),
+        'receipt_no': StringField('Receipt No', widget=BS3TextFieldWidget()),
         'color_code': HiddenField()
     }
 
@@ -170,7 +177,7 @@ class AppointmentView(AuditModelView):
             )
 
     def pre_add(self, item):
-        u = db.session.query(User).filter_by(id=item.customer.id).one()
+        u = db.session.query(User).filter_by(id=item.physician.id).one()
         item.color_code = u.color_code
         if item.end_datetime is None:
             item.end_datetime = item.begin_datetime + timedelta(hours=1)

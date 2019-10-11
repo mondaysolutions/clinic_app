@@ -3,7 +3,7 @@
 {% import 'appbuilder/general/lib.html' as lib %}
 
 {% block content %}
-{{ lib.panel_begin(title) }}
+{{ lib.panel_list_begin(title) }}
 
     <!--{% block list_search scoped %}-->
         <!--{% call lib.accordion_tag("accordion1",_("Search"), True) %}-->
@@ -23,7 +23,8 @@
         "serverSide": false,
         "lengthChange": false,
         "ordering": true,
-        "pageLength":20
+        "pageLength":20,
+        "searching": true
     });
 } );
 </script>

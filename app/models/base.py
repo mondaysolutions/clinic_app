@@ -9,13 +9,19 @@ from flask import Markup
 class StatusMixin(AuditMixin):
     status = Column(String(1), default='A', nullable=False)
 
-    @renders('status')
-    def status_display(self):
+    # @renders('status')
+    # def status_display(self):
+    #     if self.status == 'A':
+    #         return 'No'
+    #     else:
+    #         return 'Yes'
+
+    @renders('is_void')
+    def is_void(self):
         if self.status == 'A':
             return 'No'
         else:
             return 'Yes'
-
 
 class InvoiceMixin(StatusMixin):
     invoice_date = Column(Date, default=datetime.date.today(), nullable=False)

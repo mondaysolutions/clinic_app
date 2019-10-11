@@ -2,7 +2,7 @@
 {% import 'appbuilder/general/lib.html' as lib %}
 
 {% block content %}
-{{ lib.panel_begin(title) }}
+{{ lib.panel_list_begin(title) }}
 
     {% block list_search scoped %}
         {% call lib.accordion_tag("accordion1",_("Search"), False) %}
@@ -18,3 +18,14 @@
 {{ lib.panel_end() }}
 
 {% endblock %}
+<script>
+    $(document).ready(function() {
+    $('.table-bordered').DataTable({
+        "serverSide": false,
+        "lengthChange": false,
+        "ordering": true,
+        "pageLength":20,
+        "searching": true
+    });
+} );
+</script>

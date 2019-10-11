@@ -1,4 +1,4 @@
-from flask_appbuilder import ModelView
+from flask_appbuilder import ModelView, BaseView
 from flask_appbuilder.urltools import *
 from flask_appbuilder.actions import action
 from flask_appbuilder.baseviews import expose

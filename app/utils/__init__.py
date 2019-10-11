@@ -67,13 +67,15 @@ def get_choices(t):
                 ('Settled', 'Settled')]
     elif t == 'payment_method':
         return [('Apple Pay', 'Apple Pay'),
-                ('CASH', 'CASH'),
+                ('Cash', 'Cash'),
                 ('G Pay', 'G Pay'),
+                ('Bank Transfer', 'Bank Transfer'),
+                ('Credit Card', 'Credit Card'),
                 ('JCB', 'JCB'),
                 ('MasterCard', 'MasterCard'),
                 ('Samsung Pay', 'Samsung Pay'),
                 ('Union Pay', 'Union Pay'),
-                ('VISA', 'VISA'),
+                ('Visa', 'Visa'),
                 ('WeChat', 'WeChat')]
     elif t == 'yes_no':
         return [('Yes', 'Yes'),
@@ -99,7 +101,7 @@ def get_choices(t):
                 ('Packages', 'Packages'),
                 ('Products', 'Products'),
                 ('Others', 'Others')]
-    elif t == 'salvation':
+    elif t == 'title':
         return [('Miss', 'Miss'),
                 ('Mrs', 'Mrs'),
                 ('Mr', 'Mr')]

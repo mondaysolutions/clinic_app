@@ -24,8 +24,8 @@ from .base_util import *
 class PackageTicketView(AuditModelView):
     datamodel = SQLAInterface(PackageTicket)
     base_permissions = ['can_list', 'can_action']
-
-    list_columns = ['mobile', 'begin_datetime', 'end_datetime']
+    base_order = ('begin_datetime', 'desc')
+    list_columns = ['mobile', 'appointment_begin_datetime', 'appointment_end_datetime']
 
 
 class PackageView(AuditModelView):
@@ -34,9 +34,11 @@ class PackageView(AuditModelView):
     related_views = [PackageTicketView]
     show_template = 'appbuilder/general/model/show_cascade.html'
     edit_template = 'appbuilder/general/model/edit_cascade.html'
-    list_template = 'appbuilder/general/model/list.html'
+    # list_template = 'appbuilder/general/model/list.html'
 
-    base_permissions = ['can_list', 'can_add', 'can_edit', 'can_action', 'can_delete']
+    base_order = ('begin_date', 'desc')
+
+    base_permissions = ['can_list', 'can_add', 'can_edit', 'can_action']
 
     list_columns = ['receipt_no_display', 'description', 'begin_date', 'end_date', 'ticket_count', 'ticket_remaining']
 

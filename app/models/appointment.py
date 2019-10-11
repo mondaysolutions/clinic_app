@@ -22,7 +22,7 @@ class AppointmentRequest(StatusMixin, Model):
     begin_datetime = Column(DateTime, nullable=False)
     end_datetime = Column(DateTime, nullable=True)
 
-    salvation = Column(String(10), nullable=False)
+    title = Column(String(10), nullable=False)
     first_name = Column(String(50), nullable=False)
     last_name = Column(String(50), nullable=False)
     contact_no = Column(String(20), nullable=False)

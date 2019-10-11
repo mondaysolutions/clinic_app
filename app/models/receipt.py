@@ -31,6 +31,12 @@ class Receipt(StatusMixin, Model):
 
     receipt_items = relationship("ReceiptItem", cascade="all, delete-orphan")
 
+    @renders('price')
+    def coupon_code_display(self):
+        if self.coupon_code:
+            return self.coupon_code
+        else:
+            return ''
 
 class ReceiptItem(StatusMixin, Model):
     id = Column(Integer, primary_key=True)
@@ -51,6 +57,8 @@ class ReceiptItem(StatusMixin, Model):
     apply_coupon = Column(String(10), nullable=False)
     discount = Column(Numeric(8, 2), nullable=True)
     amount = Column(Numeric(8, 2), nullable=True)
+
+    remarks = Column(Text, nullable=True)
 
     # def item_description(self):
     #     if self.category.category_type == 'Others':
