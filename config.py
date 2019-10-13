@@ -60,12 +60,26 @@ FILE_ALLOWED_EXTENSIONS = ("txt", "pdf", "jpeg", "jpg", "gif", "png", "doc", "do
 
 
 FAB_ROLES = {
+    "Customer": [
+        # ["^Customer$", "menu_access"],
+        # ["^Customers \(Customer\)$", "menu_access"],
+        [".*", "can_this_form_get"],
+        [".*", "can_this_form_post"],
+        [".*", "can_list"],
+        [".*", "can_get"],
+        [".*", "can_info"],
+        [".*", "can_show"],
+        [".*", "can_add"],
+        [".*", "can_edit"],
+        [".*", "can_delete"]
+    ],
     "Staff": [
         ["^Customer$", "menu_access"],
         ["^Customers \(Staff\)$", "menu_access"],
         ["Appointment", "menu_access"],
         ["Coupon", "menu_access"],
         ["Category", "menu_access"],
+        ["Config", "menu_access"],
         ["Categories", "menu_access"],
         ["Report", "menu_access"],
         ["Receipt", "menu_access"],
@@ -98,6 +112,7 @@ FAB_ROLES = {
         ["Appointment", "menu_access"],
         ["Coupon", "menu_access"],
         ["Category", "menu_access"],
+        ["Configs", "menu_access"],
         ["Categories", "menu_access"],
         ["Report", "menu_access"],
         ["Receipt", "menu_access"],

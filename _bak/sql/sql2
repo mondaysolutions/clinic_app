@@ -1,0 +1,342 @@
+
+select 
+    c.name, b.min_30 as '30 mins', b.min_45 as '45 mins', b.min_60 as '60 mins'
+from (
+    select 
+        a.grade_id, a.min_30, a.min_45, tz.price||'|'||tz.id as 'min_60' 
+    from (
+        select tx.grade_id , tx.price ||'|'||tx.id as 'min_45', ty.price||'|'||ty.id as 'min_30'
+        from 
+            (select id, grade_id, price from lesson_fee where duration=45 and 
+            instrument_id=(select id from instrument where name='Violin')
+        ) as tx
+        left join (
+            select id, grade_id, price from lesson_fee where duration=30 and 
+            instrument_id=(select id from instrument where name='Violin')
+        ) as ty
+        on
+        tx.grade_id=ty.grade_id
+    )a 
+    left join (
+        select id, grade_id, price from lesson_fee where duration=60 and 
+        instrument_id=(select id from instrument where name='Violin')
+    ) 
+    as tz on
+    a.grade_id=tz.grade_id
+) as b
+left join
+grade c on
+b.grade_id = c.id
+order by b.grade_id asc
+;
+
+create view student_current_schedule as
+select 
+     e.student_id, e.student_history_id, e.first_name, e.last_name, f.name as instrument, e.grade,
+     e.lesson_week, e.lesson_begin_time, e.lesson_end_time, e.lesson_duration,
+     e.start_date 
+from (    
+    select 
+        c.student_id, c.student_history_id, c.first_name, c.last_name, c.instrument_id, d.name as grade,
+        c.lesson_week, c.lesson_begin_time, c.lesson_end_time, c.lesson_duration,
+        c.start_date 
+    from (
+        select 
+            a.student_id, a.student_history_id, a.first_name, a.last_name, b.instrument_id, b.grade_id,
+            b.lesson_week, b.lesson_begin_time, b.lesson_end_time, b.lesson_duration,
+            a.start_date 
+        from (
+            SELECT
+                  s.id as student_id, h.id as student_history_id, s.first_name, s.last_name, 
+                  h.instrument_id, h.grade_id, h.start_date
+            FROM (
+                SELECT
+                     id, student_id, instrument_id, grade_id, MAX(start_date) AS start_date
+                FROM 
+                    student_history
+                GROUP BY student_id, instrument_id
+            ) h
+            INNER JOIN
+            student s ON
+            s.id = h.student_id
+        ) a
+        inner join 
+        student_history b on 
+        a.student_history_id = b.id
+    ) c
+    inner join
+    grade d on 
+    c.grade_id = d.id
+) e
+inner join
+instrument f on 
+e.instrument_id = f.id
+;
+
+
+select * from invoice_lesson
+;
+
+select * from lesson_schedule
+;
+
+
+--1	1
+--11	2
+--12	1
+--13	1
+--14	1
+--15	2
+--16	1
+--17	1
+--18	1
+
+select 
+ lesson_schedule_id, open_count,  invoice_lesson_id,
+     begin_datetime, end_datetime,  lesson_remark,
+     student_id,  student_history_id, lesson_year, lesson_month, lesson_week
+     instrument_id, teacher_id, student_name, teacher_name
+ from view_lesson_actual_open;
+
+
+select 
+    lesson_schedule_id, open_count,  invoice_lesson_id,
+     begin_datetime, end_datetime,  lesson_remark,
+     student_id,  student_history_id, lesson_year, lesson_month, lesson_week,
+     instrument_id,  teacher_id, student_name, teacher_name
+ from view_lesson_actual_open;
+
+drop view view_lesson_actual_open;
+
+
+
+create view view_lesson_schedule_open as
+select 
+    e.lesson_schedule_id, e.open_count, e.invoice_lesson_id,
+    e.begin_datetime, e.end_datetime, e.lesson_remark,
+    e.student_id, e.student_history_id, e.lesson_year, e.lesson_month, e.lesson_week,
+    e.instrument_id, e.teacher_id, e.student_name, t.first_name ||' '|| t.last_name as teacher_name
+from (
+    select 
+        d.lesson_schedule_id, d.open_count, d.invoice_lesson_id,
+        d.begin_datetime, d.end_datetime, d.lesson_remark,
+        d.student_id, d.student_history_id, d.lesson_year, d.lesson_month, d.lesson_week,
+        d.instrument_id, d.teacher_id, s.first_name ||' '|| s.last_name as student_name
+    from (
+        select
+            c.lesson_schedule_id, c.open_count, c.invoice_lesson_id,
+            c.begin_datetime, c.end_datetime, c.lesson_remark,
+            c.student_id, c.student_history_id, c.lesson_year, c.lesson_month, c.lesson_week,
+            h.instrument_id, h.teacher_id
+        from (
+            select 
+                b.lesson_schedule_id, b.open_count, b.invoice_lesson_id,
+                b.begin_datetime, b.end_datetime, b.lesson_remark,
+                i.student_id, i.student_history_id, i.lesson_year, i.lesson_month, 
+                CASE i.lesson_week
+                 WHEN 0 THEN 'Monday'
+                 WHEN 1 THEN 'Tuesday'
+                 WHEN 2 THEN 'Wednesday'
+                 WHEN 3 THEN 'Thursday'
+                 WHEN 4 THEN 'Friday'
+                 WHEN 5 THEN 'Saturday'
+                 WHEN 6 THEN 'Sunday'
+                END as lesson_week
+            from (
+                select 
+                    a.lesson_schedule_id, a.open_count, l.invoice_lesson_id,
+                    l.begin_datetime, l.end_datetime, l.lesson_remark
+                from (
+                    select 
+                        lesson_schedule_id, count(lesson_schedule_id) as 'open_count'
+                    from 
+                        lesson_actual 
+                    group by lesson_schedule_id, lesson_status 
+                    having lesson_status='Open'
+                ) a
+                left join
+                lesson_schedule l on
+                l.id = a.lesson_schedule_id
+            ) b
+            left join
+            invoice_lesson i on
+            i.id = b.invoice_lesson_id
+        ) c
+        left join
+        student_history h on
+        h.id = c.student_history_id
+    ) d
+    left join
+    student s on
+    s.id = d.student_id
+) e
+left join
+teacher t on
+t.id = e.teacher_id
+;
+
+
+drop view view_lesson_schedule_open;
+
+create view view_lesson_schedule_open as
+  
+select 
+    a.lesson_schedule_id, a.open_count, l.invoice_lesson_id,
+    l.begin_datetime, l.end_datetime, l.lesson_remark, 
+    i.student_id, i.student_history_id, i.lesson_year, i.lesson_month,
+    CASE i.lesson_week
+     WHEN 0 THEN 'Monday'
+     WHEN 1 THEN 'Tuesday'
+     WHEN 2 THEN 'Wednesday'
+     WHEN 3 THEN 'Thursday'
+     WHEN 4 THEN 'Friday'
+     WHEN 5 THEN 'Saturday'
+     WHEN 6 THEN 'Sunday'
+     END as lesson_week,
+    h.instrument_id, h.teacher_id, s.first_name ||' '|| s.last_name as student_name,
+    t.first_name ||' '|| t.last_name as teacher_name
+from (
+    select 
+        lesson_schedule_id, count(lesson_schedule_id) as 'open_count'
+    from 
+        lesson_actual 
+    group by lesson_schedule_id, lesson_status 
+    having lesson_status='Open'
+) a
+left join lesson_schedule l on
+    l.id = a.lesson_schedule_id
+left join invoice_lesson i on
+    i.id = l.invoice_lesson_id
+left join student_history h on
+    h.id = i.student_history_id
+left join student s on
+    s.id = h.student_id
+left join teacher t on
+    t.id = h.teacher_id
+;
+
+
+select * from view_lesson_schedule_all;
+
+drop view view_lesson_schedule_all;
+
+create view view_lesson_schedule_all as
+  
+select 
+    a.lesson_schedule_id, a.lesson_count, l.invoice_lesson_id,
+    l.begin_datetime, l.end_datetime, l.lesson_remark, 
+    i.student_id, i.student_history_id, i.lesson_year, i.lesson_month,
+    CASE i.lesson_week
+     WHEN 0 THEN 'Monday'
+     WHEN 1 THEN 'Tuesday'
+     WHEN 2 THEN 'Wednesday'
+     WHEN 3 THEN 'Thursday'
+     WHEN 4 THEN 'Friday'
+     WHEN 5 THEN 'Saturday'
+     WHEN 6 THEN 'Sunday'
+     END as lesson_week,
+    h.instrument_id, h.teacher_id, s.first_name ||' '|| s.last_name as student_name,
+    t.first_name ||' '|| t.last_name as teacher_name
+from (
+    select 
+        lesson_schedule_id, count(lesson_schedule_id) as 'lesson_count'
+    from 
+        lesson_actual 
+    group by lesson_schedule_id, lesson_status
+) a
+left join lesson_schedule l on
+    l.id = a.lesson_schedule_id
+left join invoice_lesson i on
+    i.id = l.invoice_lesson_id
+left join student_history h on
+    h.id = i.student_history_id
+left join student s on
+    s.id = h.student_id
+left join teacher t on
+    t.id = h.teacher_id
+;
+
+
+
+
+
+select * from view_lesson_actual_all;
+where la.lesson_status='Open';
+
+drop view view_lesson_actual_all;
+
+create view view_lesson_actual_all as
+  
+select 
+    la.id as lesson_actual_id, la.begin_datetime as actual_begin_datetime, 
+    la.end_datetime as actual_end_datetime, la.lesson_status,
+    ls.id as lesson_schedule_id, ls.invoice_lesson_id,
+    ls.begin_datetime as schedule_begin_datetime, ls.end_datetime as schedule_end_datetime, ls.lesson_remark, 
+    i.student_id, i.student_history_id, i.lesson_year, i.lesson_month,
+    CASE i.lesson_week
+     WHEN 0 THEN 'Monday'
+     WHEN 1 THEN 'Tuesday'
+     WHEN 2 THEN 'Wednesday'
+     WHEN 3 THEN 'Thursday'
+     WHEN 4 THEN 'Friday'
+     WHEN 5 THEN 'Saturday'
+     WHEN 6 THEN 'Sunday'
+     END as lesson_week,
+    h.instrument_id, h.teacher_id, s.first_name ||' '|| s.last_name as student_name,
+    t.first_name ||' '|| t.last_name as teacher_name
+from 
+    lesson_actual la
+left join lesson_schedule ls on
+    ls.id = la.lesson_schedule_id
+left join invoice_lesson i on
+    i.id = ls.invoice_lesson_id
+left join student_history h on
+    h.id = i.student_history_id
+left join student s on
+    s.id = h.student_id
+left join teacher t on
+    t.id = h.teacher_id
+
+;
+
+
+
+
+select 
+    lesson_schedule_id, open_count, invoice_lesson_id,
+    begin_datetime, end_datetime, lesson_remark,
+    student_id, student_history_id, lesson_year, lesson_month, lesson_week,
+    instrument_id
+ from view_lesson_actual_open
+where instrument_id = (select id from instrument where name='Piano')
+;
+
+
+
+select * from invoice_lesson;
+
+select * from lesson_schedule;
+    
+
+select * from lesson_actual where lesson_status='Open' 
+
+order by lesson_schedule_id asc;
+
+select * from student_current_schedule
+where instrument = 'Piano' ;
+
+select * from student_current_schedule
+where instrument = 'Violin' ;
+
+
+select a.*, b.open_count from 
+(
+select 
+        lesson_schedule_id, count(lesson_schedule_id) as 'open_count'
+    from 
+        lesson_actual 
+    group by lesson_schedule_id, lesson_status 
+    having lesson_status='Open'
+) b
+left join lesson_schedule as a
+on b.lesson_schedule_id = a.id

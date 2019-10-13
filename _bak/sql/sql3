@@ -1,0 +1,99 @@
+--create view view_lesson_fee_matrix as 
+
+                select 
+                    c.name as grade, b.instrument_id, 
+                    b.min_30 as '30 mins', b.min_45 as '45 mins', b.min_60 as '60 mins'
+                from (
+                    select 
+                        a.grade_id, a.instrument_id, a.min_30, a.min_45, tz.price||'|'||tz.id as 'min_60' 
+                    from (
+                        select tx.grade_id , tx.instrument_id, 
+                                tx.price ||'|'||tx.id as 'min_45', ty.price||'|'||ty.id as 'min_30'
+                        from 
+                            (
+                            select id, instrument_id, grade_id, price from lesson_fee where duration=45 
+--                            and instrument_id=(select id from instrument where name='{}')
+                        ) as tx
+                        left join (
+                            select id, instrument_id, grade_id, price from lesson_fee where duration=30 
+--                            and instrument_id=(select id from instrument where name='{}')
+                        ) as ty
+                        on
+                        tx.grade_id=ty.grade_id
+                    )a 
+                    left join (
+                        select id, instrument_id, grade_id, price from lesson_fee where duration=60 
+--                        and instrument_id=(select id from instrument where name='{}')
+                    ) 
+                    as tz on
+                    a.grade_id=tz.grade_id
+                ) as b
+                left join
+                grade c on
+                b.grade_id = c.id
+                order by b.grade_id asc
+                ;
+                
+
+create view view_lesson_fee_matrix as 
+select tx.grade_id , tx.instrument_id, 
+       i.name as instrument, 
+       g.name as grade,
+       tz.price ||'|'||tz.id as 'min_30', 
+       tx.price ||'|'||tx.id as 'min_45', 
+       ty.price||'|'||ty.id as 'min_60'
+from (
+    select id, instrument_id, grade_id, price from lesson_fee where duration=45 
+) as tx
+left join (
+    select id, instrument_id, grade_id, price from lesson_fee where duration=60 
+) as ty
+on tx.grade_id=ty.grade_id and tx.instrument_id=ty.instrument_id 
+left join (
+    select id, instrument_id, grade_id, price from lesson_fee where duration=30 
+) as tz
+on tx.grade_id=tz.grade_id and tx.instrument_id=tz.instrument_id 
+left join
+grade g on
+tx.grade_id = g.id
+left join
+instrument i on
+tx.instrument_id = i.id
+;
+
+select grade, instrument, min_30, min_45, min_60 from view_lesson_fee_matrix where instrument = 'Piano'
+order by grade_id asc;
+
+
+
+select * from student_history where end_date is NULL;
+
+
+
+explain query plan
+
+
+select * from student_history x 
+where 
+end_date is NULL and 
+x.id not in(
+    select 
+        h.id
+    from 
+        invoice_lesson i
+    inner join (select * from student_history where end_date is NULL) as h on
+        h.id = i.student_history_id
+    where
+    i.lesson_year = 2019 and
+    i.lesson_month = 5
+)
+
+
+
+left join
+(select * from student_history where end_date is NULL) h
+
+
+where 
+i.lesson_year = 2019 and
+i.lesson_month = 

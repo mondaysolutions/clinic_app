@@ -2,9 +2,10 @@ from flask import Flask, render_template, flash, request, redirect, url_for
 from flask_appbuilder.models.sqla.interface import SQLAInterface
 from flask_appbuilder.baseviews import BaseView, expose
 from flask_appbuilder.widgets import ListLinkWidget
-from flask_appbuilder.fieldwidgets import Select2Widget
+from flask_appbuilder.fieldwidgets import Select2Widget, BS3TextFieldWidget, BS3PasswordFieldWidget
 from flask_appbuilder.actions import action
 from flask_appbuilder.fields import QuerySelectField
+
 from flask_appbuilder.security.decorators import has_access
 from flask_appbuilder.models.sqla.filters import FilterEqualFunction, FilterStartsWith, FilterEqual,\
                                                  BaseFilter, BaseFilterConverter, FilterRelation
@@ -12,9 +13,7 @@ from flask_appbuilder.models.sqla.filters import FilterEqualFunction, FilterStar
 from flask_appbuilder.security.sqla.models import User
 
 from flask import Flask, g
-from wtforms import validators
-from wtforms import SelectField
-
+from wtforms import Form, validators, StringField, DateField, SubmitField, SelectField, HiddenField
 from app import db
 
 from app.widgets import CustomizeSelect2Widget
@@ -188,7 +187,6 @@ class CustomerView(AuditModelView):
         ('Info', {'fields': [
                     "chinese_name", "email", "mobile_no", "emergency_contact", "referral_doctor", "source_of_referral",
                 ],
-                'expanded':False
             }),
         ('Other Physicians', {'fields': [
                     "physician2", "physician3", "physician4", "physician5",
@@ -201,10 +199,13 @@ class CustomerView(AuditModelView):
 
     add_form_extra_fields = {
         'title': SelectField('Title', choices=get_choices('title'),
-                                 validators=[validators.DataRequired()],
-                                 widget=CustomizeSelect2Widget(extra_classes="")),
+                             validators=[validators.DataRequired()],
+                             widget=CustomizeSelect2Widget(extra_classes="")),
+        'first_name': StringField('First Name', validators=[validators.DataRequired()], widget=BS3TextFieldWidget()),
+        'last_name': StringField('Last Name', validators=[validators.DataRequired()], widget=BS3TextFieldWidget()),
 
-        # 'physician1': SelectField('Primary Physician', choices=get_choices('ab_user'),
+        'contact_no': StringField('Contact No', validators=[validators.DataRequired()], widget=BS3TextFieldWidget()),
+                                 # 'physician1': SelectField('Primary Physician', choices=get_choices('ab_user'),
         #                           validators=[validators.DataRequired()],
         #                           widget=CustomizeSelect2Widget(extra_classes=""),
         #                           default=get_user),
@@ -278,4 +279,66 @@ class CustomerView(AuditModelView):
 
 class CustomerStaffView(CustomerView):
     related_views = [AppointmentView, PackageView, ReceiptCustomerView]
+
+    def get_redirect(self):
+        """
+            Returns the previous url.
+        """
+        index_url = self.appbuilder.get_url_for_index
+        page_history = Stack(session.get("page_history", []))
+        pop = page_history.pop()
+
+        if pop is None:
+            return index_url
+        else:
+            if pop.find('/customerstaffview/add') != -1:
+                return f'/customerstaffview/edit/{self.pk}'
+            elif pop.find('/customerstaffview/edit') != -1:
+                return pop
+            else:
+                session["page_history"] = page_history.to_json()
+                url = page_history.pop() or index_url
+                return url
+
+
+class CustomerCustomerView(CustomerView):
+    related_views = []
+
+    add_form_extra_fields = {
+        'title': SelectField('Title', choices=get_choices('title'),
+                             validators=[validators.DataRequired()],
+                             widget=CustomizeSelect2Widget(extra_classes="")),
+        'physician1': QuerySelectField('Primary Physician',
+                                       query_func=physician_query_func,
+                                       get_pk_func=physician_get_pk_func,
+                                       allow_blank=False,
+                                       validators=[validators.DataRequired()],
+                                       widget=Select2Widget(extra_classes=""),
+                                       default=get_user),
+        'pass_code': StringField('Pass Code', validators=[validators.DataRequired(),
+                                                          PassCodeValidator(message='Invalid Pass Code')
+                                                          ],
+                                 widget=BS3PasswordFieldWidget(), ),
+    }
+
+    add_fieldsets = [
+        ('Personal', {
+                'fields': [
+                    "title", "first_name", "last_name", "hkid", "contact_no", 'physician1', "date_of_birth"
+                ]
+            }),
+        ('Info', {
+                'fields': [
+                    "chinese_name", "email", "mobile_no", "emergency_contact", "referral_doctor", "source_of_referral",
+                ],
+            }),
+        ('Pass Code', {
+                'fields': [
+                    "pass_code"
+                ],
+            }),
+    ]
+
+    # def pre_add(self, item):
+    #     if item.pass_code:
 

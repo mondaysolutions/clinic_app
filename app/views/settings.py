@@ -4,10 +4,16 @@ from wtforms import Form, validators, StringField, DateField, SubmitField, Selec
 from app.widgets import CustomizeSelect2Widget
 from flask_appbuilder.fieldwidgets import DateTimePickerWidget, TimePickerWidget, BS3TextFieldWidget
 from app.utils import get_choices
-from app.models import Coupon, Category
+from app.models import Coupon, Category, Config
 
 from .base_util import *
 from .base import *
+
+
+class ConfigView(AuditModelView):
+    datamodel = SQLAInterface(Config)
+    base_permissions = ['can_list', 'can_add', 'can_edit', 'can_action']
+    list_columns = ['key']
 
 
 class CouponView(AuditModelView):

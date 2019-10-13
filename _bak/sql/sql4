@@ -1,0 +1,104 @@
+CREATE TABLE table1 (
+  start_datetime DATETIME NOT NULL,
+  end_datetime DATETIME NOT NULL,
+  comments VARCHAR(100) NOT NULL 
+);
+
+INSERT INTO table1 (start_datetime, end_datetime, comments) VALUES
+('2012-05-01 00:00:00', '2012-06-01 00:00:00', 'May 01 2012 - May 31 2012'),
+('2012-05-01 00:00:00', '2012-06-16 00:00:00', 'May 01 2012 - Jun 15 2012'),
+('2012-05-01 00:00:00', '2012-08-01 00:00:00', 'May 01 2012 - Jul 31 2012'),
+('2012-06-10 00:00:00', '2012-06-20 00:00:00', 'Jun 10 2012 - Jun 19 2012'),
+('2012-06-16 00:00:00', '2012-08-01 00:00:00', 'Jun 16 2012 - Jul 31 2012'),
+('2012-07-01 00:00:00', '2012-08-01 00:00:00', 'Jul 01 2012 - Jul 31 2012');
+
+
+--SET @d1 = '2012-06-01 00:00:00'; -- Jun 01 2012
+--SET @d2 = '2012-07-01 00:00:00'; -- Jun 30 2012
+
+SELECT * FROM table1 WHERE '2012-07-01 00:00:00' > start_datetime 
+AND end_datetime > '2012-06-01 00:00:00';
+
+SELECT * FROM table1 
+WHERE 
+--'2012-06-01 00:00:00' <= start_datetime OR 
+end_datetime <= '2012-07-01 00:00:00';
+
+
+select 
+                 student_id, student_history_id, first_name, last_name, instrument, grade,
+                 lesson_week, lesson_begin_time, lesson_end_time, lesson_duration, start_date 
+            from   
+                view_current_student
+            where instrument = 'Piano';
+            
+create view view_current_student as
+select 
+     e.student_id, e.student_history_id, e.first_name, e.last_name, f.name as instrument, e.grade,
+     e.lesson_week, e.lesson_begin_time, e.lesson_end_time, e.lesson_duration,
+     e.start_date 
+from (    
+    select 
+        c.student_id, c.student_history_id, c.first_name, c.last_name, c.instrument_id, d.name as grade,
+        c.lesson_week, c.lesson_begin_time, c.lesson_end_time, c.lesson_duration,
+        c.start_date 
+    from (
+        select 
+            a.student_id, a.student_history_id, a.first_name, a.last_name, b.instrument_id, b.grade_id,
+            b.lesson_week, b.lesson_begin_time, b.lesson_end_time, b.lesson_duration,
+            a.start_date 
+        from (
+            SELECT
+                  s.id as student_id, h.id as student_history_id, s.first_name, s.last_name, 
+                  h.instrument_id, h.grade_id, h.start_date
+            FROM (
+                SELECT
+                     id, student_id, instrument_id, grade_id, MAX(start_date) AS start_date
+                FROM 
+                    student_history
+                GROUP BY student_id, instrument_id
+            ) h
+            INNER JOIN
+            student s ON
+            s.id = h.student_id
+        ) a
+        inner join 
+        student_history b on 
+        a.student_history_id = b.id
+    ) c
+    inner join
+    grade d on 
+    c.grade_id = d.id
+) e
+inner join
+instrument f on 
+e.instrument_id = f.id;
+
+
+--delete from invoice_lesson;
+
+
+select s.id,
+       s.first_name || ' ' || s.last_name as student_name,
+       s.mobile, s.contact_person, s.contact_mobile 
+ from
+student s
+left join student_history h on
+s.id = h.student_id
+where s.id not in (select student_id from view_current_student)
+;       
+select 
+                 student_id, student_history_id, first_name, last_name, instrument, grade,
+                 lesson_week, lesson_begin_time, lesson_end_time, lesson_duration, start_date 
+            from   
+                view_current_student
+)
+
+            where instrument = '{}'
+;
+SELECT
+                     id, student_id, instrument_id, grade_id, MAX(start_date) AS start_date
+                FROM 
+                    student_history
+                GROUP BY student_id, instrument_id  
+                having end_date is NULL          

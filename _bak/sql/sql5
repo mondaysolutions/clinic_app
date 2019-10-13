@@ -1,0 +1,507 @@
+select 
+        lesson_schedule_id, count(lesson_schedule_id) as 'lesson_count'
+    from 
+        lesson_actual 
+    group by lesson_schedule_id, lesson_status
+    ;
+    
+
+-- delete from invoice_product;
+delete from invoice_lesson;
+
+delete from student;
+
+
+select 
+    a.lesson_schedule_id, a.lesson_count, l.invoice_lesson_id,
+    l.begin_datetime, l.end_datetime, l.lesson_remark, 
+    i.student_id, i.student_history_id, i.lesson_year, i.lesson_month,
+    CASE i.lesson_week
+     WHEN 0 THEN 'Monday'
+     WHEN 1 THEN 'Tuesday'
+     WHEN 2 THEN 'Wednesday'
+     WHEN 3 THEN 'Thursday'
+     WHEN 4 THEN 'Friday'
+     WHEN 5 THEN 'Saturday'
+     WHEN 6 THEN 'Sunday'
+     END as lesson_week,
+    h.instrument_id, h.teacher_id, s.first_name ||' '|| s.last_name as student_name,
+    t.first_name ||' '|| t.last_name as teacher_name,
+    instr.name as instrument, g.name as grade
+from (
+    select 
+        lesson_schedule_id, count(lesson_schedule_id) as 'lesson_count'
+    from 
+        lesson_actual 
+    group by lesson_schedule_id, lesson_status
+) a
+left join lesson_schedule l on
+    l.id = a.lesson_schedule_id
+left join invoice_lesson i on
+    i.id = l.invoice_lesson_id
+left join student_history h on
+    h.id = i.student_history_id
+left join student s on
+    s.id = h.student_id
+left join teacher t on
+    t.id = h.teacher_id
+left join instrument instr on
+    instr.id = h.instrument_id
+left join grade g on
+    g.id = h.grade_id
+;
+
+-- ===================================
+-- schedule open
+-- ===================================
+
+select s.id as lesson_schedule_id, s.begin_datetime, s.end_datetime, s.lesson_remark,
+       i.id as invoice_lesson_id, i.lesson_year, i.lesson_month, 
+       CASE i.lesson_week
+             WHEN 0 THEN 'Monday'
+             WHEN 1 THEN 'Tuesday'
+             WHEN 2 THEN 'Wednesday'
+             WHEN 3 THEN 'Thursday'
+             WHEN 4 THEN 'Friday'
+             WHEN 5 THEN 'Saturday'
+             WHEN 6 THEN 'Sunday'
+       END as lesson_week,
+       h.id as student_history_id, h.start_date as student_history_start_date,
+       st.first_name || ' ' || st.last_name as student_name, st.id as student_id,
+       t.first_name || ' ' || t.last_name as teacher_name, t.id as teacher_id,
+       instr.name as instrument, g.name as grade
+from (
+    select x.id, x.begin_datetime, x.end_datetime, x.lesson_remark, x.invoice_lesson_id
+    from lesson_schedule x where x.id in (
+        select lesson_schedule_id from lesson_actual where lesson_status='Open' 
+        group by lesson_schedule_id 
+    ) 
+) s
+left join 
+    invoice_lesson i
+on s.invoice_lesson_id = i.id
+left join
+    (select * from student_history where end_date is NULL) h
+on i.student_history_id = h.id
+left join 
+    student st
+on h.student_id = st.id
+left join 
+    teacher t
+on h.teacher_id = t.id
+left join 
+    instrument instr
+on h.instrument_id = instr.id
+left join 
+    grade g
+on h.grade_id = g.id
+;
+
+-- ===================================
+-- schedule close
+-- ===================================
+
+create view view_lesson_actual as
+select 
+    la.id as lesson_actual_id, la.begin_datetime as actual_begin_datetime, 
+    la.end_datetime as actual_end_datetime, la.lesson_status,
+    ls.id as lesson_schedule_id, ls.invoice_lesson_id,
+    ls.begin_datetime as schedule_begin_datetime, ls.end_datetime as schedule_end_datetime, ls.lesson_remark, 
+    i.student_id, i.student_history_id, i.lesson_year, i.lesson_month,
+    CASE i.lesson_week
+     WHEN 0 THEN 'Monday'
+     WHEN 1 THEN 'Tuesday'
+     WHEN 2 THEN 'Wednesday'
+     WHEN 3 THEN 'Thursday'
+     WHEN 4 THEN 'Friday'
+     WHEN 5 THEN 'Saturday'
+     WHEN 6 THEN 'Sunday'
+     END as lesson_week,
+    h.instrument_id, h.teacher_id, s.first_name ||' '|| s.last_name as student_name,
+    t.first_name ||' '|| t.last_name as teacher_name,
+    instr.name as instrument, g.name as grade
+from 
+    lesson_actual la
+left join lesson_schedule ls on
+    ls.id = la.lesson_schedule_id
+left join invoice_lesson i on
+    i.id = ls.invoice_lesson_id
+left join 
+    (select * from student_history where end_date is NULL) h on
+    h.id = i.student_history_id
+left join student s on
+    s.id = h.student_id
+left join teacher t on
+    t.id = h.teacher_id
+left join instrument instr on
+    instr.id = h.instrument_id
+left join grade g on
+    g.id = h.grade_id
+;
+
+
+create view view_lesson_schedule as
+select s.id as lesson_schedule_id, s.begin_datetime, s.end_datetime, s.lesson_remark,
+       s.lesson_actual_close_count, s.lesson_actual_count, s.lesson_open_close,
+       i.id as invoice_lesson_id, i.lesson_year, i.lesson_month, 
+       CASE i.lesson_week
+             WHEN 0 THEN 'Monday'
+             WHEN 1 THEN 'Tuesday'
+             WHEN 2 THEN 'Wednesday'
+             WHEN 3 THEN 'Thursday'
+             WHEN 4 THEN 'Friday'
+             WHEN 5 THEN 'Saturday'
+             WHEN 6 THEN 'Sunday'
+       END as lesson_week,
+       h.id as student_history_id, h.start_date as student_history_start_date,
+       st.first_name || ' ' || st.last_name as student_name, st.id as student_id,
+       t.first_name || ' ' || t.last_name as teacher_name, t.id as teacher_id,
+       instr.name as instrument, g.name as grade
+from (
+    select z.id, z.begin_datetime, z.end_datetime, z.lesson_remark, z.invoice_lesson_id,
+        k.lesson_actual_close_count, k.lesson_actual_count, k.lesson_open_close
+    from lesson_schedule z 
+    left join (
+    
+        select x.lesson_schedule_id, x.lesson_actual_count, 
+            CASE 
+                WHEN y.lesson_actual_close_count is NULL THEN 0
+                ELSE y.lesson_actual_close_count
+            END as lesson_actual_close_count,
+            CASE 
+                 WHEN y.lesson_actual_close_count is NULL  THEN 'Open'
+                 WHEN y.lesson_actual_close_count < x.lesson_actual_count  THEN 'Open'
+                 ELSE 'Close'
+            END as lesson_open_close
+        from(
+            select lesson_schedule_id, count(lesson_schedule_id) lesson_actual_count
+             from lesson_actual
+             group by lesson_schedule_id 
+    
+        ) x
+        left join
+            (
+            select lesson_schedule_id, count(lesson_schedule_id) lesson_actual_close_count
+             from lesson_actual where lesson_status='Close'
+            group by lesson_schedule_id 
+        ) y
+        on x.lesson_schedule_id = y.lesson_schedule_id
+    ) k
+    on
+    z.id  = k.lesson_schedule_id
+) s
+left join 
+    invoice_lesson i
+on s.invoice_lesson_id = i.id
+left join
+    (select * from student_history where end_date is NULL) h
+on i.student_history_id = h.id
+left join 
+    student st
+on h.student_id = st.id
+left join 
+    teacher t
+on h.teacher_id = t.id
+left join 
+    instrument instr
+on h.instrument_id = instr.id
+left join 
+    grade g
+on h.grade_id = g.id;
+
+where s.lesson_open_close = 'Open'
+;
+
+
+
+
+select z.id, z.begin_datetime, z.end_datetime, z.lesson_remark, z.invoice_lesson_id,
+    k.lesson_actual_close_count, k.lesson_actual_count, k.lesson_open_close
+from lesson_schedule z 
+left join (
+    select x.lesson_schedule_id, x.lesson_actual_count, 
+        CASE 
+            WHEN y.lesson_actual_close_count is NULL THEN 0
+            ELSE y.lesson_actual_close_count
+        END as lesson_actual_close_count,
+        CASE 
+             WHEN y.lesson_actual_close_count is NULL  THEN 'Open'
+             WHEN y.lesson_actual_close_count < x.lesson_actual_count  THEN 'Open'
+             ELSE 'Close'
+        END as lesson_open_close
+    from
+        (
+        select lesson_schedule_id, count(lesson_schedule_id) lesson_actual_count
+         from lesson_actual
+         group by lesson_schedule_id 
+
+    ) x
+    left join
+        (
+        select lesson_schedule_id, count(lesson_schedule_id) lesson_actual_close_count
+         from lesson_actual where lesson_status='Close'
+        group by lesson_schedule_id 
+    ) y
+    on x.lesson_schedule_id = y.lesson_schedule_id
+) k
+on
+z.id  = k.lesson_schedule_id
+  
+
+
+-- ===================================
+-- schedule all
+-- ===================================
+
+select s.id as lesson_schedule_id, s.begin_datetime, s.end_datetime, s.lesson_remark,
+       i.id as invoice_lesson_id, i.lesson_year, i.lesson_month, 
+       CASE i.lesson_week
+             WHEN 0 THEN 'Monday'
+             WHEN 1 THEN 'Tuesday'
+             WHEN 2 THEN 'Wednesday'
+             WHEN 3 THEN 'Thursday'
+             WHEN 4 THEN 'Friday'
+             WHEN 5 THEN 'Saturday'
+             WHEN 6 THEN 'Sunday'
+       END as lesson_week,
+       h.id as student_history_id, h.start_date as student_history_start_date,
+       st.first_name || ' ' || st.last_name as student_name, st.id as student_id,
+       t.first_name || ' ' || t.last_name as teacher_name, t.id as teacher_id,
+       instr.name as instrument, g.name as grade
+from 
+    lesson_schedule s
+left join 
+    invoice_lesson i
+on s.invoice_lesson_id = i.id
+left join
+    (select * from student_history where end_date is NULL) h
+on i.student_history_id = h.id
+left join 
+    student st
+on h.student_id = st.id
+left join 
+    teacher t
+on h.teacher_id = t.id
+left join 
+    instrument instr
+on h.instrument_id = instr.id
+left join 
+    grade g
+on h.grade_id = g.id
+;
+
+-- ===================================
+-- actual open
+-- ===================================
+
+select 
+    la.id as lesson_actual_id, la.begin_datetime as actual_begin_datetime, 
+    la.end_datetime as actual_end_datetime, la.lesson_status,
+    ls.id as lesson_schedule_id, ls.invoice_lesson_id,
+    ls.begin_datetime as schedule_begin_datetime, ls.end_datetime as schedule_end_datetime, ls.lesson_remark, 
+    i.student_id, i.student_history_id, i.lesson_year, i.lesson_month,
+    CASE i.lesson_week
+     WHEN 0 THEN 'Monday'
+     WHEN 1 THEN 'Tuesday'
+     WHEN 2 THEN 'Wednesday'
+     WHEN 3 THEN 'Thursday'
+     WHEN 4 THEN 'Friday'
+     WHEN 5 THEN 'Saturday'
+     WHEN 6 THEN 'Sunday'
+     END as lesson_week,
+    h.instrument_id, h.teacher_id, s.first_name ||' '|| s.last_name as student_name,
+    t.first_name ||' '|| t.last_name as teacher_name,
+    instr.name as instrument, g.name as grade
+from 
+    lesson_actual la
+left join lesson_schedule ls on
+    ls.id = la.lesson_schedule_id
+left join invoice_lesson i on
+    i.id = ls.invoice_lesson_id
+left join 
+    (select * from student_history where end_date is NULL) h on
+    h.id = i.student_history_id
+left join student s on
+    s.id = h.student_id
+left join teacher t on
+    t.id = h.teacher_id
+left join instrument instr on
+    instr.id = h.instrument_id
+left join grade g on
+    g.id = h.grade_id
+where la.lesson_status = 'Open'
+;
+-- ============================================
+
+
+
+
+select id from teacher;
+
+
+select 
+
+
+
+        
+        select x.lesson_schedule_id, x.lesson_actual_close_count, y.lesson_actual_count
+        from
+            (
+            select lesson_schedule_id, count(lesson_schedule_id) lesson_actual_close_count
+             from lesson_actual where lesson_status='Close' 
+            group by lesson_schedule_id 
+        ) x
+        left join
+            (
+            select lesson_schedule_id, count(lesson_schedule_id) lesson_actual_count
+             from lesson_actual
+             group by lesson_schedule_id 
+        ) y
+        on x.lesson_schedule_id = y.lesson_schedule_id
+        where x.lesson_actual_close_count = y.lesson_actual_count
+        
+
+    
+
+) 
+
+
+
+
+
+select lesson_schedule_id, count(lesson_schedule_id)
+from lesson_actual group by lesson_schedule_id
+having lesson_status='Open'
+
+
+select * from lesson_actual where lesson_status='Close';
+
+having lesson_status='Open'
+
+and y.lesson_year = 2019
+and y.lesson_month = 4
+;
+
+
+--on x.id = y.lesson_schedule_id
+
+;
+
+--- 
+select lesson_schedule_id, count(lesson_schedule_id) as lesson_actual_count
+    from lesson_actual 
+    where lesson_status='Open' 
+    group by lesson_schedule_id ;
+    --- 
+
+
+
+/*where 
+y.lesson_year = 2019
+and y.lesson_month = 4
+;*/
+
+
+select a.id as lesson_actual_id, a.begin_datetime, a.end_datetime, a.lesson_status,
+       s.id as lesson_schedule_id, s.begin_datetime, s.end_datetime, s.lesson_remark,
+       i.id as invoice_lesson_id, i.lesson_year, i.lesson_month, 
+       CASE i.lesson_week
+             WHEN 0 THEN 'Monday'
+             WHEN 1 THEN 'Tuesday'
+             WHEN 2 THEN 'Wednesday'
+             WHEN 3 THEN 'Thursday'
+             WHEN 4 THEN 'Friday'
+             WHEN 5 THEN 'Saturday'
+             WHEN 6 THEN 'Sunday'
+       END as lesson_week,
+       h.id as student_history, h.start_date as student_history_start_date,
+       st.first_name || ' ' || st.last_name as student_name,
+       t.first_name || ' ' || t.last_name as teacher_name
+from lesson_actual a
+left join 
+    lesson_schedule s
+on a.lesson_schedule_id = s.id
+left join 
+    invoice_lesson i
+on s.invoice_lesson_id = i.id
+left join
+    (select * from student_history where end_date is NULL) h
+on i.student_history_id = h.id
+left join 
+    student st
+on h.student_id = st.id
+left join 
+    teacher t
+on h.teacher_id = t.id
+left join 
+    instrument instr
+on h.instrument_id = instr.id
+left join 
+    grade g
+on h.grade_id = g.id
+
+where 
+a.lesson_status = 'Open'
+and i.lesson_year = 2019
+and i.lesson_month = 4
+;
+
+
+select * from lesson_schedule;
+
+
+update invoice_lesson set lesson_fee = amount / 4;
+
+update lesson_schedule set lesson_fee = (select amount/4 from invoice_lesson where id = 4)
+where invoice_lesson_id = 4;
+
+
+
+
+
+select z.id as lesson_schedule_id, z.begin_datetime, z.end_datetime, 
+    z.lesson_remark, z.invoice_lesson_id, z.lesson_fee,
+    k.lesson_actual_close_count, k.lesson_actual_count, k.lesson_pay, 
+    t.id as teacher_id, t.first_name || ' ' || t.last_name as teacher_name,
+    t.commission_rate 
+from lesson_schedule z 
+left join (
+    select x.lesson_schedule_id, x.lesson_actual_count, 
+        CASE 
+            WHEN y.lesson_actual_close_count is NULL THEN 0
+            ELSE y.lesson_actual_close_count
+        END as lesson_actual_close_count,
+        CASE 
+             WHEN y.lesson_actual_close_count > 0   THEN 'Pay'
+             ELSE '-'
+        END as lesson_pay
+    from
+        (
+        select lesson_schedule_id, count(lesson_schedule_id) lesson_actual_count
+         from lesson_actual
+         group by lesson_schedule_id 
+
+    ) x
+    left join
+        (
+        select lesson_schedule_id, count(lesson_schedule_id) lesson_actual_close_count
+         from lesson_actual where lesson_status='Close'
+        group by lesson_schedule_id 
+    ) y
+    on x.lesson_schedule_id = y.lesson_schedule_id
+) k
+on
+z.id  = k.lesson_schedule_id
+left join
+invoice_lesson i on
+z.invoice_lesson_id = i.id
+left join
+student_history h on 
+i.student_history_id = h.id
+left join
+teacher t on
+h.teacher_id = t.id
+
+where k.lesson_pay = 'Pay';
+
+update student set billing_name = first_name || ' ' || last_name;

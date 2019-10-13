@@ -42,3 +42,9 @@ class Category(StatusMixin, Model):
     def __repr__(self):
         return f'{self.category_type} - {self.description} - ${self.price}'
 
+
+class Config(StatusMixin, Model):
+    id = Column(Integer, primary_key=True)
+
+    key = Column(String(20), nullable=False)
+    value = Column(String(50), nullable=False)

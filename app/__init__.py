@@ -37,7 +37,10 @@ class CustomIndexView(IndexView):
         if user.is_anonymous:
             return redirect(url_for('AuthDBView.login'))
         else:
-            return redirect(url_for('AppointmentCalendarView.calendar'))
+            if user.user_type == 'Customer':
+                return redirect(url_for('CustomerCustomerView.add'))
+            else:
+                return redirect(url_for('AppointmentCalendarView.calendar'))
 
 
 app = Flask(__name__)

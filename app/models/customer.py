@@ -116,6 +116,9 @@ class Customer(StatusMixin, Model):
     @renders('hkid')
     def display_hkid(self):
         if self.hkid:
-            return self.hkid
+            if len(self.hkid) > 4:
+                return self.hkid[0:4] + 'XXXX'
+            else:
+                return self.hkid
         else:
             return ''

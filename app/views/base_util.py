@@ -182,6 +182,21 @@ class SharingMobileValidator(object):
                 raise ValidationError(message)
 
 
+class PassCodeValidator(object):
+    def __init__(self, message=None):
+        self.message = message
+
+    def __call__(self, form, field):
+
+        if form.data['pass_code']:
+            pass_code = db.session.execute(
+                    "select value from config where key=:key and status='A'", {'key': 'pass_code'}).scalar()
+            if form.data['pass_code'] == pass_code:
+                pass
+            else:
+                raise ValidationError("Please fill the right pass code")
+
+
 class ReceiptItemValidator(object):
     def __init__(self, message=None):
         self.message = message

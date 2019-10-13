@@ -31,11 +31,13 @@ appbuilder.add_view_no_menu(ReceiptCustomerView, "ReceiptCustomerView")
 
 appbuilder.add_view(CustomerView, "Customers (Physician)", icon="", category="Customer")
 appbuilder.add_view(CustomerStaffView, "Customers (Staff)", icon="", category="Customer")
+appbuilder.add_view(CustomerCustomerView, "Customers (Customer)", icon="", category="Customer")
+
 appbuilder.add_view(AppointmentCalendarView, "Appointment Calendar", icon="", category="Appointment")
-appbuilder.add_view(AppointmentRequestView, "Appointment Request", icon="", category="Appointment")
 appbuilder.add_view(ReceiptGeneralView, "Receipts", icon="", category="Receipt")
 appbuilder.add_view(CouponView, "Coupons", icon="", category="Settings")
 appbuilder.add_view(CategoryView, "Categories", icon="", category="Settings")
 appbuilder.add_view(ReportView, "Reports", icon="", category="Report")
+appbuilder.add_view(ConfigView, "Configs", icon="", category="Settings")
 
 appbuilder.add_api(ExampleApi)

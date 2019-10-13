@@ -1,0 +1,112 @@
+explain query plan
+select invoice_lesson_id, amount from (
+select invoice_lesson_id, sum(lesson_fee) as amount
+from lesson_schedule group by invoice_lesson_id
+)
+where invoice_lesson_id = 1
+;
+
+explain query plan
+select invoice_lesson_id, sum(lesson_fee) as amount from (
+select invoice_lesson_id, lesson_fee
+from lesson_schedule where invoice_lesson_id = 1
+)
+group by invoice_lesson_id;
+
+
+create view view_invoice_lesson_total as
+select i.status,
+    i.created_on,
+    i.changed_on,
+    i.status,
+    i.id,
+    i.student_id,
+    i.student_history_id,
+    i.invoice_date,
+    i.created_by_fk,
+    i.changed_by_fk,
+    i.lesson_year,
+    i.lesson_month,
+    i.lesson_week,
+    i.payment,
+    i.payment_method,
+    i.payment_reference,
+    i.amount,
+    i.payment_date,
+    s.total
+from invoice_lesson i
+left join (
+    select invoice_lesson_id, sum(lesson_fee) as total
+    from lesson_schedule
+    group by invoice_lesson_id
+) s
+on i.id = s.invoice_lesson_id;
+
+
+create view view_teacher_payment_lesson_schedule as
+
+select  st.id as student_id,
+        st.first_name || ' ' || st.last_name as student_name,
+        h.id as student_history_id, h.lesson_duration,
+        instr.name as instrument,
+        g.name as grade,
+        i.id as invoice_lesson_id,
+        i.lesson_year, i.lesson_month,
+        CASE i.lesson_week
+             WHEN 0 THEN 'Monday'
+             WHEN 1 THEN 'Tuesday'
+             WHEN 2 THEN 'Wednesday'
+             WHEN 3 THEN 'Thursday'
+             WHEN 4 THEN 'Friday'
+             WHEN 5 THEN 'Saturday'
+             WHEN 6 THEN 'Sunday'
+        END as lesson_week,
+        s.id as lesson_schedule_id,
+        s.begin_datetime, s.end_datetime,
+        s.lesson_remark, s.lesson_fee, s.pay_to_teacher,
+        s.pay_year, s.pay_month,
+        t.id as teacher_id, t.first_name, t.last_name, t.commission_rate,
+        t.commission_rate * lesson_fee as lesson_fee_to_teacher
+from lesson_schedule s
+left join
+teacher t on
+s.teacher_id = t.id
+left join
+invoice_lesson i on
+s.invoice_lesson_id = i.id
+left join
+student_history h on
+i.student_history_id = h.id
+left join
+instrument instr on
+h.instrument_id = instr.id
+left join
+grade g on
+h.grade_id = g.id
+left join
+student st on
+i.student_id = st.id
+
+where
+s.teacher_id=1 and
+s.pay_to_teacher='Yes' and
+s.pay_year=2019 and
+s.pay_month=5
+;
+
+select a.status, a.id, a.lesson_schedule_id,
+       a.begin_datetime, a.end_datetime,
+       a.lesson_status
+from lesson_actual a
+where
+a.lesson_schedule_id in (
+    select s.id from lesson_schedule s
+    left join teacher t on s.teacher_id = t.id
+    where
+    s.teacher_id=1 and
+    s.pay_to_teacher='Yes' and
+    s.pay_year=2019 and
+    s.pay_month=5
+)
+;
+

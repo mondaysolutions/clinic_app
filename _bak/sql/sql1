@@ -1,0 +1,14 @@
+SELECT orders.order_id,
+       users.username,
+       users.phone,
+       cookies.cookie_name,
+       line_items.quantity,
+       line_items.extended_cost
+  FROM users
+       JOIN
+       orders ON users.user_id = orders.user_id
+       JOIN
+       line_items ON orders.order_id = line_items.order_id
+       JOIN
+       cookies ON cookies.cookie_id = line_items.cookie_id
+ WHERE users.username = 'cookiemon';
