@@ -1,7 +1,0 @@
-SELECT id, salvation,first_name,last_name,
-       chinese_name,date_of_birth,hkid,email,contact_no,mobile_no,
-       emergency_contact,referral_doctor,source_of_referral
-  FROM customer;
-
-
- INSERT INTO receipt (created_on, changed_on, status, id, receipt_no, appointment_id, receipt_date, payment_method, payment_reference, amount, item_1, quantity_1, sub_amount_1, item_2, quantity_2, sub_amount_2, item_3, quantity_3, sub_amount_3, item_4, quantity_4, sub_amount_4, item_5, quantity_5, sub_amount_5, created_by_fk, changed_by_fk) VALUES  ('2019-08-21 15:21:21.000019', '2019-08-21 15:21:21.000045', 'A', '', '1', '2', '2019-06-23', '1', '12312', 1.0, '1', 1, 1.0, '', None, None, '', None, None, '', None, None, '', None, None, 1, 1);
