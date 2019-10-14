@@ -266,7 +266,7 @@ class AppointmentCalendarView(BaseView):
         current_date = datetime.now().strftime("%Y-%m-%d")
 
         self.update_redirect()
-        return self.render_template('lesson/scheduler.html',
+        return self.render_template('scheduler/scheduler.html',
                                     title="Appointment Calendar",
                                     current_date=current_date,
                                     resources=resources, events=events)
