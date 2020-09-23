@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 
 from flask_appbuilder.models.sqla.interface import SQLAInterface
 from flask_appbuilder.baseviews import BaseView, expose
@@ -15,17 +15,19 @@ from wtforms import Form, validators, StringField, DateField, SubmitField
 from wtforms.validators import DataRequired
 from flask_appbuilder.fieldwidgets import BS3TextFieldWidget, DateTimePickerWidget, DatePickerWidget
 from flask_appbuilder.security.decorators import has_access, has_access_api, permission_name
-
+from datetime import datetime
 from .base_util import *
 
 
 class ReportForm(DynamicForm):
     start_date = DateField('Start Date',
-                           default=get_today(),
+                           default=date.today,
+                           format='%Y-%m-%d',
                            validators=[DataRequired(message="You need to enter the date in format YYYY-MM-DD.")],
                            widget=DatePickerWidget(extra_classes=""))
     end_date = DateField('End Date',
-                         default=get_today(),
+                         default=date.today,
+                         format='%Y-%m-%d',
                          validators=[DataRequired(message="You need to enter the date in format YYYY-MM-DD.")],
                          widget=DatePickerWidget(extra_classes=""))
     # submit = SubmitField('Report')
@@ -74,7 +76,7 @@ class ReportView(SimpleFormView):
 
         resource_query = """
                             select 
-                                'MP' || receipt_no as receipt_no, receipt_date, customer_name, contact_no, substr(hkid,1,4) || 'XXX' as hkid, date_of_birth,
+                                'MP' || receipt_no as receipt_no, receipt_date, physio_name, customer_name, contact_no, substr(hkid,1,4) || 'XXX' as hkid, date_of_birth,
                                 payment_method, payment_reference, total
                             from view_report_receipt
                             where 1=1 
@@ -85,7 +87,7 @@ class ReportView(SimpleFormView):
 
         resource_query_items = """
                             select 
-                                'MP' || receipt_no as receipt_no, receipt_date, category_type, description, apply_coupon, coupon_code, 
+                                'MP' || receipt_no as receipt_no, receipt_date, physio_name, category_type, description, apply_coupon, coupon_code, 
                                 original_price, actual_price
                             from view_report_receipt_item
                             where 1 = 1

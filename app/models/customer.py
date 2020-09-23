@@ -32,7 +32,7 @@ class CustomerDocument(StatusMixin, Model):
 
     def preview_image(self):
         return Markup(
-            '<img src="'
+            '<img width="100%" src="'
             + appbuilder.app.config['IMG_UPLOAD_URL'] + str(self.file)
             + '">'
         )
@@ -104,7 +104,7 @@ class Customer(StatusMixin, Model):
     physician5 = relationship("User", foreign_keys=[physician5_id])
 
     def __repr__(self):
-        return self.first_name + ' ' + self.last_name
+        return self.last_name + ' ' + self.first_name
 
     @renders('contact_no')
     def display_contact_no(self):

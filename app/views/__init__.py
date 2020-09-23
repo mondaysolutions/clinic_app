@@ -6,6 +6,7 @@ from .receipt import *
 from .appointment import *
 from .package import *
 from .customer import *
+from .uploads import *
 
 
 def get_user():
@@ -27,7 +28,7 @@ appbuilder.add_view_no_menu(AppointmentView, "AppointmentView")
 appbuilder.add_view_no_menu(PackageView, "PackageView")
 appbuilder.add_view_no_menu(PackageTicketView, "PackageTicketView")
 appbuilder.add_view_no_menu(ReceiptCustomerView, "ReceiptCustomerView")
-
+appbuilder.add_view_no_menu(UploadsView, "UploadsView")
 
 appbuilder.add_view(CustomerView, "Customers (Physician)", icon="", category="Customer")
 appbuilder.add_view(CustomerStaffView, "Customers (Staff)", icon="", category="Customer")

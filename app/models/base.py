@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 from sqlalchemy import Column, String, Date, Numeric
 
 from flask_appbuilder.models.mixins import AuditMixin
@@ -23,8 +23,9 @@ class StatusMixin(AuditMixin):
         else:
             return 'Yes'
 
+
 class InvoiceMixin(StatusMixin):
-    invoice_date = Column(Date, default=datetime.date.today(), nullable=False)
+    invoice_date = Column(Date, default=datetime.today, nullable=False)
     payment = Column(String(20), nullable=False)
     payment_method = Column(String(20), nullable=True)
     payment_reference = Column(String(20), nullable=True)

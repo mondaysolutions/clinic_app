@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, date
 from sqlalchemy import Column, Integer, String, ForeignKey, Date, Text, Numeric, DateTime
 
 from sqlalchemy.orm import relationship
@@ -25,7 +25,8 @@ class Receipt(StatusMixin, Model):
     package = relationship("Package")
 
     coupon_code = Column(String(50), nullable=True)
-    receipt_date = Column(Date, default=datetime.date.today(), nullable=False)
+    # receipt_date = Column(Date, default=datetime.today, nullable=False)
+    receipt_date = Column(Date, default=date.today, nullable=False)
     payment_method = Column(String(20), nullable=False)
     payment_reference = Column(String(50), nullable=True)
 

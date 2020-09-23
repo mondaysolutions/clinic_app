@@ -142,9 +142,9 @@ class CustomerView(AuditModelView):
     edit_template = 'appbuilder/general/model/edit.html'
     # list_template = 'appbuilder/general/model/list.html'
 
-    search_columns = ['first_name', 'last_name', 'hkid', 'contact_no']
+    search_columns = ['last_name', 'first_name', 'hkid', 'contact_no']
 
-    list_columns = ['first_name', 'last_name', 'display_hkid', 'display_contact_no']
+    list_columns = ['last_name', 'first_name', 'display_hkid', 'display_contact_no']
 
     base_permissions = ['can_list', 'can_add', 'can_edit', 'can_search']
 
@@ -157,7 +157,7 @@ class CustomerView(AuditModelView):
                      'display_hkid': 'HK ID',
                      'display_contact_no': 'Contact No'}
 
-    base_order = ('first_name', 'asc')
+    base_order = ('last_name', 'asc')
 
     add_form_query_rel_fields = {'physician1': [['user_type', FilterEqual, 'Physician']],
                                  'physician2': [['user_type', FilterEqual, 'Physician']],

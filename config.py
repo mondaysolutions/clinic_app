@@ -34,9 +34,13 @@ SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'db/clinic.db') +
 #------------------------------
 # GLOBALS FOR GENERAL APP's
 #------------------------------
-UPLOAD_FOLDER = basedir + "/app/static/uploads/"
-IMG_UPLOAD_FOLDER = basedir + "/app/static/uploads/"
-IMG_UPLOAD_URL = "/static/uploads/"
+#UPLOAD_FOLDER = basedir + "/app/static/uploads/"
+#IMG_UPLOAD_FOLDER = basedir + "/app/static/uploads/"
+
+UPLOAD_FOLDER = basedir + "/../clinic_uploads/"
+IMG_UPLOAD_FOLDER = basedir + "/../clinic_uploads/"
+
+IMG_UPLOAD_URL = "/uploadsview/"
 FILE_ALLOWED_EXTENSIONS = ("txt", "pdf", "jpeg", "jpg", "gif", "png", "doc", "docx")
 
 # IMG_SIZE = (150,150,True)

@@ -197,7 +197,7 @@ class AppointmentView(AuditModelView):
     def download_certificate(self, item):
         total = 0
         current_date = datetime.now().strftime("%Y-%m-%d")
-        html = self.render_template('certificate/one.html', appointment=item, total=total, current_date=current_date)
+        html = self.render_template('certificate/one_download.html', appointment=item, total=total, current_date=current_date)
         css = CSS(string="""
                        @page {
                         size: a4 portrait;
@@ -224,7 +224,7 @@ class AppointmentCalendarView(BaseView):
         for x in resource_cursor:
             d = dict()
             d['id'] = x['id']
-            d['title'] = x['first_name'] + ' ' + x['last_name']
+            d['title'] = x['last_name'] + ' ' + x['first_name']
             resources.append(d)
 
         event_query = """

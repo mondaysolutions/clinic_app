@@ -242,15 +242,15 @@
                         <td valign="top">
                             <div class="invoice-to" style="font-size:14px;">
                                 {% if receipt.receipt_type == 'Appointment' %}
-                                    <div class="to">Name: {{ receipt.customer.first_name }} {{ receipt.customer.last_name }} </div>
+                                    <div class="to">Name: {{ receipt.customer.last_name }} {{ receipt.customer.first_name }} </div>
                                     <div class="to">Therapist: {{ receipt.appointment.physician.first_name }} {{ receipt.appointment.physician.last_name }} </div>
                                     <div class="to">Diagnosis: {{ receipt.appointment.diagnosis  }}</div>
                                 {% endif %}
                                 {% if receipt.receipt_type == 'Package' %}
-                                    <div class="to">Name: {{ receipt.customer.first_name }} {{ receipt.customer.last_name }} </div>
+                                    <div class="to">Name: {{ receipt.customer.last_name }} {{ receipt.customer.first_name }} </div>
                                 {% endif %}
                                 {% if receipt.receipt_type == 'General' and receipt.customer %}
-                                    <div class="to">Name: {{ receipt.customer.first_name }} {{ receipt.customer.last_name }} </div>
+                                    <div class="to">Name: {{ receipt.customer.last_name }} {{ receipt.customer.first_name }} </div>
                                 {% endif %}
                             </div>
                         </td>
